@@ -63,24 +63,6 @@ def create_apache_airflow():
     erm.create_roles_default_erm(session, evn_name)
 
 
-def deleted_buckets():
-    for name in bucket_names:
-        b_name = f'{prefix}-{name}'
-        os.system(f'aws s3 rm s3://{b_name} --recursive')
-        buckets.deleted_buckets(session, b_name)
-    print("Deleted susses all buckets")
-
-
-def deleted_vpc():
-    vpc.deleted_stack_template_vpc(session, vpc_name)
-
-
-def deleted_role():
-    iam.detach_role_policy(session, f'{evn_name}-policy', f'{evn_name}-role')
-    iam.detach_role_policy_aws(session, f'AmazonS3FullAccess', f'{evn_name}-role')
-    iam.delete_role_all_dep(session, f'{evn_name}-policy', f'{evn_name}-role')
-
-
 if __name__ == '__main__':
     #buckets_create_update()
     create_vpc_subnets()
