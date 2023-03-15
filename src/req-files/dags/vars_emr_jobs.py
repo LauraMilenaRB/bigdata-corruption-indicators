@@ -35,7 +35,7 @@ ind_sources = {
                             f"t_seii_ofertaproces_procesocompr=s3://{bucket_raw_name_arg}/t_seii_ofertaproces_procesocompr/"
 }
 
-JOB_FLOW_OVERRIDES ={
+JOB_FLOW_OVERRIDES = {
     'Name': 'mwaa-emr-cluster',
     'ReleaseLabel': 'emr-5.36.0',
     'LogUri': 's3://test-pgr-aws-logs/',
@@ -61,13 +61,13 @@ JOB_FLOW_OVERRIDES ={
                 'InstanceCount': 1,
             }
         ],
-        'Ec2SubnetId': 'subnet-02fe631d69b24cc75',
+        'Ec2SubnetId': 'subnet-095461782607f6a1e',
         'KeepJobFlowAliveWhenNoSteps': True,
         'TerminationProtected': False,
     },
     'VisibleToAllUsers': True,
     'JobFlowRole': 'EMR_EC2_DefaultRole',
-    'ServiceRole': 'EMR_DefaultRole',
+    'ServiceRole': 'EMR_DefaultRole_V2',
     "StepConcurrencyLevel": 5,
     'Tags': [
         {
@@ -78,7 +78,7 @@ JOB_FLOW_OVERRIDES ={
 
 }
 athena_database = "default"
-output_location_athena = "aws-logs-query"
+output_location_athena = "aws-logs"
 DDL_results = " CREATE EXTERNAL TABLE t_result_indicadores_batch (" \
              "cantidad_irregularidades bigint," \
              "cantidad_contratos_irregularidades bigint," \

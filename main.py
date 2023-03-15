@@ -4,7 +4,6 @@ import boto3
 
 import buckets
 import erm
-import iam
 import vpc
 import airflow
 from builtins import open
@@ -12,11 +11,8 @@ import os
 
 config = ConfigParser()
 conf = json.load(open("src/config.conf"))
-region = conf.get("providers_aws").get("region")
-session = boto3.Session(
-    aws_access_key_id=conf.get("providers_aws").get("ACCESS_KEY"),
-    aws_secret_access_key=conf.get("providers_aws").get("SECRET_KEY"),
-)
+
+session = boto3.Session(profile_name='default')
 
 bucket_names = conf.get("variables_buckets").get("bucket_names")
 prefix = conf.get("variables_buckets").get("prefix")
@@ -65,6 +61,5 @@ def create_apache_airflow():
 
 if __name__ == '__main__':
     #buckets_create_update()
-    create_vpc_subnets()
-    #create_apache_airflow()
-    # deleted_buckets()
+    #create_vpc_subnets()
+    create_apache_airflow()

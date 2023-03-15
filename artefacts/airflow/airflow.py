@@ -68,6 +68,8 @@ def create_mwaa_evn(evn_name, bucked_dags_name, session_client, security_ids, su
         role_exc_evn = session_client.client('iam').get_role(
             RoleName=f'{evn_name}-role'
         )
+
+        """
         session_client.client('mwaa').create_environment(
             AirflowVersion='2.4.3',
             DagS3Path='dags/',
@@ -109,8 +111,56 @@ def create_mwaa_evn(evn_name, bucked_dags_name, session_client, security_ids, su
             SourceBucketArn=f'arn:aws:s3:::{bucked_dags_name}',
             WebserverAccessMode='PUBLIC_ONLY'
         )
+        """
+    except ClientError as e:
+        logging.error(e)
+        return False
+    print(f"Craeted environment MWAA {evn_name}")
+    return True
+
+
+def deleted_mwaa_evn(evn_name, session_client):
+    """Deleted a environment MWAA
+
+    If a region is not specified, the bucket is created in the S3 default
+    region (us-east-1).
+
+    :param evn_name:
+    :param session_client:
+    :return: True if bucket created, else False
+    """
+    try:
+
+        session_client.client('mwaa').delete_environment(
+            Name=evn_name
+        )
 
     except ClientError as e:
         logging.error(e)
         return False
+    print(f"Deleted environment MWAA {evn_name}")
+    return True
+
+
+def deleted_rol_execution_evn(session_client, evn_name):
+    """Create a role execution environment for MWAA
+
+    If a region is not specified, the bucket is created in the S3 default
+    region (us-east-1).
+
+    :param evn_name:
+    :param session_client:
+    :return: True if bucket created, else False
+    """
+    try:
+        iam.detach_role_policy(session_client, f'{evn_name}-policy', f'{evn_name}-role')
+        iam.detach_role_policy(session_client, f'PassRole_EMR_EC2-policy', f'{evn_name}-role')
+        iam.detach_role_policy_aws(session_client, f'AmazonS3FullAccess', f'{evn_name}-role')
+        iam.delete_role(session_client, f'{evn_name}-role')
+        time.sleep(5)
+
+    except ClientError as e:
+        logging.error(e)
+        return False
+    print("deleted role execution evn success")
     return True

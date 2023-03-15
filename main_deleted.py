@@ -13,11 +13,8 @@ import os
 
 config = ConfigParser()
 conf = json.load(open("src/config.conf"))
-region = conf.get("providers_aws").get("region")
-session = boto3.Session(
-    aws_access_key_id=conf.get("providers_aws").get("ACCESS_KEY"),
-    aws_secret_access_key=conf.get("providers_aws").get("SECRET_KEY"),
-)
+
+session = boto3.Session(profile_name='default')
 
 bucket_names = conf.get("variables_buckets").get("bucket_names")
 prefix = conf.get("variables_buckets").get("prefix")
@@ -40,12 +37,17 @@ def deleted_vpc():
 
 
 def deleted_role():
-    iam.detach_role_policy(session, f'{evn_name}-policy', f'{evn_name}-role')
-    iam.detach_role_policy_aws(session, f'AmazonS3FullAccess', f'{evn_name}-role')
-    iam.delete_role_all_dep(session, f'{evn_name}-policy', f'{evn_name}-role')
+    airflow.deleted_rol_execution_evn(session, evn_name)
+    erm.deleted_roles_default_erm(session)
+
+
+
+def deleted_airflow():
+    airflow.deleted_mwaa_evn(evn_name, session)
 
 
 if __name__ == '__main__':
-    deleted_buckets()
+    #deleted_buckets()
     #deleted_vpc()
-    #deleted_role()
+    deleted_role()
+    #deleted_airflow()

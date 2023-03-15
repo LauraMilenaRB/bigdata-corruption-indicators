@@ -12,8 +12,8 @@ from airflow.providers.amazon.aws.operators.emr import EmrAddStepsOperator
 from airflow.providers.amazon.aws.operators.emr import EmrCreateJobFlowOperator
 from airflow.providers.amazon.aws.operators.emr import EmrTerminateJobFlowOperator
 from airflow.providers.amazon.aws.operators.athena import AthenaOperator
-from airflow.providers.amazon.aws.sensor.athena import AthenaSensor
-from airflow.providers.amazon.aws.operators.quicksight import  QuickSightHook
+from airflow.providers.amazon.aws.sensors.athena import AthenaSensor
+
 import requests
 from vars_emr_jobs import *
 
@@ -168,7 +168,7 @@ with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * *
         job_flow_id="{{ task_instance.xcom_pull(task_ids='create_emr_cluster') }}"
     )
 
-    read_table = AthenaOperator(
+    create_table = AthenaOperator(
         task_id="create_table",
         query=DDL_results,
         database=athena_database,
@@ -177,15 +177,18 @@ with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * *
 
     await_query = AthenaSensor(
         task_id="await_query",
-        query_execution_id=read_table.output,
+        query_execution_id=create_table.output,
     )
 
+    '''
     create_data_source_athena = boto3.client("quicksight").create_data_source(
         AwsAccountId=boto3.client('sts').get_caller_identity().get("Account"),
-        DataSourceId="t_result_indicadores_batch",
-        Name="t_result_indicadores_batch",
+        DataSourceId="t_result_indicadores_batch3",
+        Name="t_result_indicadores_batch3",
         Type="ATHENA"
     )
+    '''
+
 
     download_origin_data >> [sensor_staging_bucket for sensor_staging_bucket in
                              check_download_bucket] >> create_emr_cluster
@@ -194,10 +197,10 @@ with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * *
      zip(emr_step_jobs_etl.values(), emr_step_sensor_etl.values())]
 
     emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"] >> emr_step_jobs_indic["ind_abuso_contratacion"] >> \
-    emr_step_sensor_indic["ind_abuso_contratacion"] >> remove_cluster
+    emr_step_sensor_indic["ind_abuso_contratacion"] >> [remove_cluster, create_table]
 
     [emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"],
      emr_step_sensor_etl["t_seii_ofertaproces_procesocompr"]] >> \
-    emr_step_jobs_indic["ind_ofertas_costosas"] >> emr_step_sensor_indic["ind_ofertas_costosas"] >> remove_cluster
+    emr_step_jobs_indic["ind_ofertas_costosas"] >> emr_step_sensor_indic["ind_ofertas_costosas"] >> [remove_cluster, create_table]
 
-    [remove_cluster, read_table] >> await_query >> create_data_source_athena
+    [remove_cluster, create_table] >> await_query

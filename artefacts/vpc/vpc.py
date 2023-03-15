@@ -55,7 +55,7 @@ def create_stack_template_vpc(stack_vpc_name, path_file, capabilities_par, sessi
             TemplateBody=ct_file,
             Capabilities=capabilities_par
         )
-        print("Creating...")
+        print("Creating VPC...")
         time.sleep(90)
         print("Create stack vpc")
     except ClientError as e:
