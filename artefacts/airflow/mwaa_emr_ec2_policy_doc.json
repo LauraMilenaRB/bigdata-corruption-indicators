@@ -1,0 +1,24 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "elasticmapreduce:DescribeStep",
+                "elasticmapreduce:AddJobFlowSteps",
+                "elasticmapreduce:RunJobFlow",
+                "elasticmapreduce:TerminateJobFlows"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+
+            "Action": ["iam:PassRole","iam:GetRole"],
+            "Resource": [
+                "arn:aws:iam::{your-account-id}:role/EMR_DefaultRole",
+                "arn:aws:iam::{your-account-id}:role/EMR_EC2_DefaultRole"
+            ]
+        }
+    ]
+}
