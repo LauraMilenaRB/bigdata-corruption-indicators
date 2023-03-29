@@ -36,16 +36,73 @@ def create_rol_execution_evn(session_client, bucked_dags_name, evn_name):
         iam.attach_role_policy(session_client, role_name,
                                f'arn:aws:iam::{identity.get("Account")}:policy/{policy_name}')
         iam.attach_role_policy(session_client, role_name, 'arn:aws:iam::aws:policy/AmazonS3FullAccess')
+    except ClientError as e:
+        logging.error(e)
+        return False
+    time.sleep(20)
+    print(f"Create a role execution environment for MWAA {evn_name}")
+    return True
 
-        '''
-        iam.create_role(session_client, 'AWSServiceRoleForAmazonMWAA')
-        iam.attach_role_policy(session_client, role_name, 
-                               'arn:aws:iam::aws:policy/AmazonMWAAServiceRolePolicy')
-        '''
+
+def create_policy_emr_mwaa(session_client, evn_name):
+    """Create a policy Amazon EMR for execution environment MWAA
+
+    If a region is not specified, the bucket is created in the S3 default
+    region (us-east-1).
+
+    :param evn_name:
+    :param session_client:
+    :return: True if bucket created, else False
+    """
+    try:
+        identity = session_client.client('sts').get_caller_identity()
+
+        policy_name = f'PassRole_EMR_EC2-policy'
+        role_name = f'{evn_name}-role'
+
+        file = open("artefacts/airflow/mwaa_emr_ec2_policy_doc.json", "r")
+        ct_file = file.read().replace("{your-account-id}", identity.get("Account"))
+        file.close()
+        iam.create_policy(session_client, policy_name, ct_file)
+        iam.attach_role_policy(session_client, role_name,
+                               f'arn:aws:iam::{identity.get("Account")}:policy/{policy_name}')
 
     except ClientError as e:
         logging.error(e)
         return False
+    time.sleep(20)
+    print(f"Create a policy {policy_name} for execution environment MWAA {evn_name}")
+    return True
+
+
+def create_policy_athena_mwaa(session_client, evn_name):
+    """Create a policy Amazon EMR for execution environment MWAA
+
+    If a region is not specified, the bucket is created in the S3 default
+    region (us-east-1).
+
+    :param evn_name:
+    :param session_client:
+    :return: True if bucket created, else False
+    """
+    try:
+        identity = session_client.client('sts').get_caller_identity()
+
+        policy_name = f'{evn_name}-Athena-policy'
+        role_name = f'{evn_name}-role'
+
+        file = open("artefacts/airflow/mwaa_athena_policy_doc.json", "r")
+        ct_file = file.read().replace("{your-account-id}", identity.get("Account"))
+        file.close()
+        iam.create_policy(session_client, policy_name, ct_file)
+        iam.attach_role_policy(session_client, role_name,
+                               f'arn:aws:iam::{identity.get("Account")}:policy/{policy_name}')
+
+    except ClientError as e:
+        logging.error(e)
+        return False
+    time.sleep(20)
+    print(f"Create a policy {policy_name} for execution environment MWAA {evn_name}")
     return True
 
 
@@ -63,13 +120,9 @@ def create_mwaa_evn(evn_name, bucked_dags_name, session_client, security_ids, su
     :return: True if bucket created, else False
     """
     try:
-
-        create_rol_execution_evn(session_client, bucked_dags_name, evn_name)
         role_exc_evn = session_client.client('iam').get_role(
             RoleName=f'{evn_name}-role'
         )
-
-        """
         session_client.client('mwaa').create_environment(
             AirflowVersion='2.4.3',
             DagS3Path='dags/',
@@ -104,18 +157,15 @@ def create_mwaa_evn(evn_name, bucked_dags_name, session_client, security_ids, su
                 'SecurityGroupIds': security_ids,
                 'SubnetIds': subnet_ids
             },
-            # PluginsS3ObjectVersion='string',
-            # PluginsS3Path='string',
-            # RequirementsS3ObjectVersion='string',
-            # RequirementsS3Path='string',
             SourceBucketArn=f'arn:aws:s3:::{bucked_dags_name}',
             WebserverAccessMode='PUBLIC_ONLY'
         )
-        """
+
     except ClientError as e:
         logging.error(e)
         return False
-    print(f"Craeted environment MWAA {evn_name}")
+    time.sleep(60)
+    print(f"Crete environment MWAA {evn_name}")
     return True
 
 
@@ -138,6 +188,7 @@ def deleted_mwaa_evn(evn_name, session_client):
     except ClientError as e:
         logging.error(e)
         return False
+    time.sleep(60)
     print(f"Deleted environment MWAA {evn_name}")
     return True
 
@@ -157,10 +208,9 @@ def deleted_rol_execution_evn(session_client, evn_name):
         iam.detach_role_policy(session_client, f'PassRole_EMR_EC2-policy', f'{evn_name}-role')
         iam.detach_role_policy_aws(session_client, f'AmazonS3FullAccess', f'{evn_name}-role')
         iam.delete_role(session_client, f'{evn_name}-role')
-        time.sleep(5)
-
     except ClientError as e:
         logging.error(e)
         return False
-    print("deleted role execution evn success")
+    time.sleep(20)
+    print(f"Deleted role execution evn {evn_name} success")
     return True

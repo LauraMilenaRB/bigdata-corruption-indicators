@@ -46,17 +46,18 @@ def transform_data(sources, destination_bucket):
                     when(col("monto_diferencia_valor") < 0, lit(0)).otherwise(col("monto_diferencia_valor"))) \
         .filter(col("tipo_rango_oferta").isin("1"))
 
-    df_result = dfRespuesta.agg(lit("Otros indicadores").alias("nombre_grupo_indicador"),
-                                lit("Ofertas Costosas").alias("nombre_indicador"),
-                                sum(col("tipo_es_mismo_proveedor")).alias("cantidad_irregularidades"),
-                                sum(col("tipo_es_mismo_proveedor")).alias("cantidad_contratos_irregularidades"),
-                                sum("monto_diferencia_valor").alias("monto_total_irregularidades"),
-                                count("*").alias("cantidad_contratos"),
-                                lit(date_data).cast("date").alias("fecha_ejecucion")
-                                )
+    df_result = dfRespuesta.agg(
+        lit("otros indicadores").cast("string").alias("nombre_grupo_indicador"),
+        lit("ofertas Costosas").cast("string").alias("nombre_indicador"),
+        sum(col("tipo_es_mismo_proveedor")).cast("long").alias("cantidad_irregularidades"),
+        sum(col("tipo_es_mismo_proveedor")).cast("long").alias("cantidad_contratos_irregularidades"),
+        sum("monto_diferencia_valor").cast("decimal(30,3)").alias("monto_total_irregularidades"),
+        count("*").cast("long").alias("cantidad_contratos"),
+        lit(date_data).cast("date").alias("fecha_ejecucion")
+    )
 
-    df_result.write.partitionBy("nombre_grupo_indicador", "nombre_indicador", "fecha_ejecucion").mode("overwrite") \
-        .json(f"s3://{destination_bucket}/t_result_indicadores_batch")
+    df_result.write.partitionBy("fecha_ejecucion").mode("append") \
+        .parquet(f"s3://{destination_bucket}/t_result_indicadores_batch")
     print(df_result.count())
     logging.info(f"Success write data frame t_result_indicadores_batch in {destination_bucket}")
 

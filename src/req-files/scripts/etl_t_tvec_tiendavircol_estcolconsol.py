@@ -7,29 +7,29 @@ from datetime import date
 
 
 def transform_data(spark, key, date_origin, source_bucket, destination_bucket):
-    data_source = spark.read.option("multiline", "true").json(f"s3://{source_bucket}/{key}/{key}_{date_origin}.json")
+    data_source = spark.read.option("header", True).csv(f"s3://{source_bucket}/{key}/{key}_{date_origin}.json")
 
     date_data = date.today()
     data_transform = data_source.select(
-        trim(col("a_o")).alias("fecha_anio_orden_compra"),
-        trim(col("identificador_de_la_orden")).alias("id_orden_compra"),
-        trim(col("rama_de_la_entidad")).alias("nombre_rama_entidad"),
-        trim(col("sector_de_la_entidad")).alias("nombre_sector_entidad"),
-        trim(col("entidad")).alias("nombre_entidad"),
-        upper(trim(col("solicitante"))).alias("nombre_solicitante"),
-        to_timestamp(trim(col("fecha")), "yyyy-mm-dd'T'HH:mm:ss").alias("fecha_orden_compra"),
-        upper(trim(col("proveedor"))).alias("nombre_proveedor"),
-        when(trim(col("estado")).isNull(), "NoDefinido").otherwise(trim(col("Estado"))).alias("tipo_estado_orden"),
-        trim(col("solicitud")).alias("id_solicitud_compra"),
-        trim(col("items")).alias("desc_items_orden_compra"),
-        trim(col("total")).cast("decimal(30,3)").alias("monto_total_orden_compra"),
-        trim(col("agregacion")).alias("tipo_agregacion_orden_compra"),
-        trim(col("ciudad")).alias("nombre_ciudad_orden"),
-        trim(col("entidad_obigada")).alias("tipo_entidad_obligada"),
-        trim(col("espostconflicto")).alias("tipo_marca_postconflicto"),
-        trim(col("nit_proveedor")).alias("id_nit_proveedor"),
-        trim(col("actividad_economica_proveedor")).alias("id_actividad_economica"),
-        trim(col("id_entidad")).alias("id_entidad"),
+        trim(col("Año")).alias("fecha_anio_orden_compra"),
+        trim(col("Identificador de la Orden")).alias("id_orden_compra"),
+        trim(col("Rama de la Entidad")).alias("nombre_rama_entidad"),
+        trim(col("Sector de la Entidad")).alias("nombre_sector_entidad"),
+        trim(col("Entidad")).alias("nombre_entidad"),
+        upper(trim(col("Solicitante"))).alias("nombre_solicitante"),
+        to_timestamp(trim(col("Fecha")), "MM/dd/yyyy HH:mm:ss").alias("fecha_orden_compra"),
+        upper(trim(col("Proveedor"))).alias("nombre_proveedor"),
+        when(trim(col("Estado")).isNull(), "NoDefinido").otherwise(trim(col("Estado"))).alias("tipo_estado_orden"),
+        trim(col("Solicitud")).alias("id_solicitud_compra"),
+        trim(col("Items")).alias("desc_items_orden_compra"),
+        trim(col("Total")).cast("decimal(30,3)").alias("monto_total_orden_compra"),
+        trim(col("Agregacion")).alias("tipo_agregacion_orden_compra"),
+        trim(col("Ciudad")).alias("nombre_ciudad_orden"),
+        trim(col("Entidad Obigada")).alias("tipo_entidad_obligada"),
+        trim(col("EsPostconflicto")).alias("tipo_marca_postconflicto"),
+        trim(col("NIT Proveedor")).alias("id_nit_proveedor"),
+        trim(col("Actividad Economica Proveedor")).alias("id_actividad_economica"),
+        trim(col("ID Entidad")).alias("id_entidad"),
         lit(date_data).cast("date").alias("fecha_corte_datos")
     )
 

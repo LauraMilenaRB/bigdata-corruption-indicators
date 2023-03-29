@@ -16,8 +16,9 @@
 
             "Action": ["iam:PassRole","iam:GetRole"],
             "Resource": [
-                "arn:aws:iam::{your-account-id}:role/EMR_DefaultRole_V2",
-                "arn:aws:iam::{your-account-id}:role/EMR_EC2_DefaultRole"
+                "arn:aws:iam::{your-account-id}:role/EMR_DefaultRole",
+                "arn:aws:iam::{your-account-id}:role/EMR_EC2_DefaultRole",
+                "arn:aws:iam::{your-account-id}:role/EMR_AutoScaling_DefaultRole"
             ]
         }
     ]

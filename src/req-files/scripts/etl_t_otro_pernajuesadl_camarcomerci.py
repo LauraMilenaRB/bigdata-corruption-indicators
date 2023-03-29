@@ -7,7 +7,8 @@ from datetime import date
 
 
 def transform_data(spark, key, date_origin, source_bucket, destination_bucket):
-    data_source = spark.read.option("multiline", "true").json(f"s3://{source_bucket}/{key}/{key}_{date_origin}.json")
+    #data_source = spark.read.option("multiline", "true").json(f"s3://{source_bucket}/{key}/{key}_{date_origin}.json")
+    data_source = spark.read.option("header", True).csv(f"s3://{source_bucket}/origen/Personas_Naturales__Personas_Jur_dicas_y_Entidades_Sin_Animo_de_Lucro.csv")
 
     date_data = date.today()
     data_transform = data_source.select(
@@ -30,10 +31,14 @@ def transform_data(spark, key, date_origin, source_bucket, destination_bucket):
         trim(col("cod_ciiu_act_econ_sec")).alias("id_ciiu_secundaria"),
         trim(col("ciiu3")).alias("id_ciiu_terciaria"),
         trim(col("ciiu4")).alias("id_ciiu_cuaternaria"),
+        # si
         to_date(trim(col("fecha_matricula")), "yyyyMMdd").alias("fecha_matricula"),
+        # si
         to_date(trim(col("fecha_renovacion")), "yyyyMMdd").alias("fecha_ultima_renovacion"),
         trim(col("ultimo_ano_renovado")).alias("fecha_anio_renovado"),
+        # si
         to_date(trim(col("fecha_vigencia")), "yyyyMMdd").alias("fecha_vigencia"),
+        # si
         to_date(trim(col("fecha_cancelacion")), "yyyyMMdd").alias("fecha_cancelacion"),
         trim(col("codigo_tipo_sociedad")).alias("codigo_tipo_sociedad"),
         trim(col("tipo_sociedad")).alias("tipo_sociedad"),
@@ -43,12 +48,14 @@ def transform_data(spark, key, date_origin, source_bucket, destination_bucket):
         trim(col("categoria_matricula")).alias("categoria_matricula"),
         trim(col("codigo_estado_matricula")).alias("codigo_estado_matricula"),
         trim(col("estado_matricula")).alias("tipo_estado_matricula"),
-        trim(col("clase_identificacion_rl")).alias("tipo_identificacion_rep_leg"),
-        trim(col("num_identificacion_representante_legal")).alias("id_nit_rep_leg"),
-        upper(trim(col("representante_legal"))).alias("nombre_rep_leg"),
+        trim(col("clase_identificacion_RL")).alias("tipo_identificacion_rep_leg"),
+        trim(col("Num Identificacion Representante Legal")).alias("id_nit_rep_leg"),
+        upper(trim(col("Representante Legal"))).alias("nombre_rep_leg"),
         to_timestamp(trim(col("fecha_actualizacion")), "yyyy/MM/dd HH:mm:ss").alias("fecha_acutalizacion"),
         lit(date_data).cast("date").alias("fecha_corte_datos")
-    ).withColumn("fecha_matricula", when(year("fecha_matricula") < 1959, lit(None)).otherwise(col("fecha_matricula"))) \
+    )\
+        .withColumn("fecha_matricula",
+                    when(year("fecha_matricula") < 1959, lit(None)).otherwise(col("fecha_matricula"))) \
         .withColumn("fecha_ultima_renovacion",
                     when(year("fecha_ultima_renovacion") < 1959, lit(None)).otherwise(col("fecha_ultima_renovacion"))) \
         .withColumn("fecha_vigencia", when(year("fecha_vigencia") < 1959, lit(None)).otherwise(col("fecha_vigencia"))) \

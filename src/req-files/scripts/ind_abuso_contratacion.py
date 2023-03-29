@@ -16,35 +16,36 @@ def get_data_frames(spark, list_source, date_origin):
 
 
 def transform_data(sources, destination_bucket):
-    dfAbusoContratacion = sources["t_seii_procecotrata_compraadjudi"].select(col("id_nit_entidad"),
-                                                                             col("monto_total_adjudicado"),
-                                                                             col("id_nit_proveedor")) \
-        .filter(~col("id_nit_proveedor").isin("No Definido", "No Adjudicado")) \
-        .groupBy(col("id_nit_entidad"), col("id_nit_proveedor")).agg(count("*").alias("cantidad_asignadas"),
-                                                                     sum("monto_total_adjudicado").alias(
-                                                                         "monto_suma_total_adjudicado")) \
-        .orderBy(col("cantidad_asignadas").desc())
-
+    dfPrCon = sources["t_seii_procecotrata_compraadjudi"]
     date_data = date.today()
 
+    dfAbusoContratacion = dfPrCon.select(col("id_nit_entidad"),col("monto_total_adjudicado"), col("id_nit_proveedor")) \
+        .filter(~col("id_nit_proveedor").isin("No Definido", "No Adjudicado")) \
+        .groupBy(col("id_nit_entidad"), col("id_nit_proveedor"))\
+        .agg(count("*").alias("cantidad_asignadas"),
+             sum("monto_total_adjudicado").alias("monto_suma_total_adjudicado")) \
+        .orderBy(col("cantidad_asignadas").desc())
+
+
+
     # Cantidad de irregularidades detectadas
-    print("Cantidad de irregularidades detectadas:")
     irregularidades = dfAbusoContratacion.filter(col("cantidad_asignadas") >= 3).count()
     # Total de contratos en la base
     total = dfAbusoContratacion.count()
 
     df_result = dfAbusoContratacion.filter(col("cantidad_asignadas") >= 3) \
-        .agg(lit("Otros indicadores").alias("nombre_grupo_indicador"),
-             lit("Abuso de la contratación").alias("nombre_indicador"),
-             lit(irregularidades).alias("cantidad_irregularidades"),
-             sum("cantidad_asignadas").alias("cantidad_contratos_irregularidades"),
-             sum("monto_suma_total_adjudicado").alias("monto_total_irregularidades"),
-             lit(total).alias("cantidad_contratos_totales"),
-             lit(date_data).cast("date").alias("fecha_ejecucion")
-             )
+        .agg(
+        lit("otros indicadores").cast("string").alias("nombre_grupo_indicador"),
+        lit("abuso de la contratación").cast("string").alias("nombre_indicador"),
+        lit(irregularidades).cast("long").alias("cantidad_irregularidades"),
+        sum("cantidad_asignadas").cast("long").alias("cantidad_contratos_irregularidades"),
+        sum("monto_suma_total_adjudicado").cast("decimal(30,3)").alias("monto_total_irregularidades"),
+        lit(total).cast("long").alias("cantidad_contratos_totales"),
+        lit(date_data).cast("date").alias("fecha_ejecucion")
+    )
 
-    df_result.write.partitionBy("nombre_grupo_indicador", "nombre_indicador", "fecha_ejecucion").mode("overwrite") \
-        .json(f"s3://{destination_bucket}/t_result_indicadores_batch")
+    df_result.write.partitionBy("fecha_ejecucion").mode("append") \
+        .parquet(f"s3://{destination_bucket}/t_result_indicadores_batch")
     print(df_result.count())
     logging.info(f"Success write data frame t_result_indicadores_batch in {destination_bucket}")
 

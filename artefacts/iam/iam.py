@@ -153,3 +153,47 @@ def delete_role(session_client, role_name):
     print(f"Deleted role {role_name}")
     time.sleep(10)
     return True
+
+
+def remove_role_from_instance_profile(session_client, role_name, instance_profile):
+    """Put block public access to bucket S3
+
+    :param role_name:
+    :param session_client:
+    :param instance_profile:
+    :return: True if file was uploaded, else False
+    """
+    try:
+        iam_client = session_client.client('iam')
+        iam_client.remove_role_from_instance_profile(
+            InstanceProfileName=instance_profile,
+            RoleName=role_name
+        )
+    except ClientError as e:
+        logging.error(e)
+        return False
+    print(f"Remove role {role_name} from instance profile {instance_profile}")
+    time.sleep(10)
+    return True
+
+
+def add_role_from_instance_profile(session_client, role_name, instance_profile):
+    """Put block public access to bucket S3
+
+    :param role_name:
+    :param session_client:
+    :param instance_profile:
+    :return: True if file was uploaded, else False
+    """
+    try:
+        iam = session_client.client('iam')
+        response = iam.add_role_to_instance_profile(
+            InstanceProfileName=instance_profile,
+            RoleName=role_name
+        )
+    except ClientError as e:
+        logging.error(e)
+        return False
+    print(f"Add role {role_name} from instance profile {instance_profile}")
+    time.sleep(10)
+    return True

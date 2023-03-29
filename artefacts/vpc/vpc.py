@@ -1,4 +1,3 @@
-import json
 import logging
 import time
 
@@ -55,12 +54,13 @@ def create_stack_template_vpc(stack_vpc_name, path_file, capabilities_par, sessi
             TemplateBody=ct_file,
             Capabilities=capabilities_par
         )
-        print("Creating VPC...")
-        time.sleep(90)
-        print("Create stack vpc")
+
     except ClientError as e:
         logging.error(e)
         return False
+    print("Creating VPC...")
+    time.sleep(90)
+    print("Create stack vpc")
     return True
 
 

@@ -34,8 +34,6 @@ def download_dataset(**context):
                 bucket.put_object(Bucket=bucket_name,
                                   Key=f'{key_source}/{key_source}_{id_date_load_data}.{data_type_origin}',
                                   Body=origin_data.content)
-                # with open(f'{key_source}.{data_type_origin}', mode='wb') as localfile:
-                # localfile.write(data_type_origin.content).close()
             if s3_hook.check_for_key(bucket_name=bucket_name, key=f'{key_source}/{id_date_load_data}_SUCCESS'):
                 s3_hook.delete_objects(bucket=bucket_name, keys=f'{key_source}/{id_date_load_data}_SUCCESS')
             s3_hook.load_string(bucket_name=bucket_name, key=f'{key_source}/{id_date_load_data}_SUCCESS',
@@ -48,8 +46,8 @@ def download_dataset(**context):
 
 def steps_etl():
     dict_steps = {}
-    if len(endpoint_url_arg) > 0:
-        for key_step in endpoint_url_arg.keys():
+    if len(objects) > 0:
+        for key_step in objects:
             dict_steps[key_step] = {
                 'Name': f'ingestion_process_{key_step}',
                 'ActionOnFailure': 'CONTINUE',
@@ -94,6 +92,7 @@ def steps_ind():
 
 with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * * 0",
          default_args=default_args, catchup=False, tags=['emr', 'mwaa']) as dag:
+    """
     download_origin_data = PythonOperator(
         task_id='download_origin',
         python_callable=download_dataset,
@@ -126,7 +125,7 @@ with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * *
 
     for key, step in steps_etls.items():
         add_emr_spark_step = EmrAddStepsOperator(
-            task_id=f'emr_step_{key}',
+            task_id=f'emr_step_etl_{key}',
             aws_conn_id='aws_default',
             job_flow_id="{{ task_instance.xcom_pull(task_ids='create_emr_cluster') }}",
             steps=[step]
@@ -134,10 +133,10 @@ with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * *
         emr_step_jobs_etl[key] = add_emr_spark_step
 
         emr_spark_job_sensor = EmrStepSensor(
-            task_id=f'emr_job_sensor_{key}',
+            task_id=f'emr_job_sensor_etl_{key}',
             aws_conn_id='aws_default',
             job_flow_id="{{ task_instance.xcom_pull(task_ids='create_emr_cluster') }}",
-            step_id=f"{{{{ task_instance.xcom_pull(task_ids='emr_step_{key}')[0] }}}}"
+            step_id=f"{{{{ task_instance.xcom_pull(task_ids='emr_step_etl_{key}')[0] }}}}"
         )
         emr_step_sensor_etl[key] = emr_spark_job_sensor
 
@@ -148,7 +147,7 @@ with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * *
 
     for key, step in steps_inds.items():
         add_emr_spark_step = EmrAddStepsOperator(
-            task_id=f'emr_step_{key}',
+            task_id=f'emr_step_process_{key}',
             aws_conn_id='aws_default',
             job_flow_id="{{ task_instance.xcom_pull(task_ids='create_emr_cluster') }}",
             steps=[step]
@@ -156,10 +155,10 @@ with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * *
         emr_step_jobs_indic[key] = add_emr_spark_step
 
         emr_spark_job_sensor = EmrStepSensor(
-            task_id=f'emr_job_sensor_{key}',
+            task_id=f'emr_job_sensor_process_{key}',
             aws_conn_id='aws_default',
             job_flow_id="{{ task_instance.xcom_pull(task_ids='create_emr_cluster') }}",
-            step_id=f"{{{{ task_instance.xcom_pull(task_ids='emr_step_{key}')[0] }}}}"
+            step_id=f"{{{{ task_instance.xcom_pull(task_ids='emr_step_process_{key}')[0] }}}}"
         )
         emr_step_sensor_indic[key] = emr_spark_job_sensor
 
@@ -167,6 +166,7 @@ with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * *
         task_id="remove_cluster",
         job_flow_id="{{ task_instance.xcom_pull(task_ids='create_emr_cluster') }}"
     )
+    """
 
     create_table = AthenaOperator(
         task_id="create_table",
@@ -175,32 +175,67 @@ with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * *
         output_location=f"s3://{output_location_athena}/",
     )
 
-    await_query = AthenaSensor(
+    await_query1 = AthenaSensor(
         task_id="await_query",
         query_execution_id=create_table.output,
     )
 
-    '''
-    create_data_source_athena = boto3.client("quicksight").create_data_source(
-        AwsAccountId=boto3.client('sts').get_caller_identity().get("Account"),
-        DataSourceId="t_result_indicadores_batch3",
-        Name="t_result_indicadores_batch3",
-        Type="ATHENA"
+    repair_table = AthenaOperator(
+        task_id="repair_table",
+        query=repair_query,
+        database=athena_database,
+        output_location=f"s3://{output_location_athena}/",
     )
-    '''
 
+    await_query2 = AthenaSensor(
+        task_id="await_query2",
+        query_execution_id=create_table.output,
+    )
 
-    download_origin_data >> [sensor_staging_bucket for sensor_staging_bucket in
-                             check_download_bucket] >> create_emr_cluster
+    """
+    download_origin_data >> [sensor_staging_bucket for sensor_staging_bucket in check_download_bucket] \
+          >> create_emr_cluster
 
-    [create_emr_cluster >> step >> sensor for step, sensor in
-     zip(emr_step_jobs_etl.values(), emr_step_sensor_etl.values())]
+    [create_emr_cluster >> step >> sensor for step, sensor in zip(emr_step_jobs_etl.values(), emr_step_sensor_etl.values())]
 
     emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"] >> emr_step_jobs_indic["ind_abuso_contratacion"] >> \
     emr_step_sensor_indic["ind_abuso_contratacion"] >> [remove_cluster, create_table]
 
     [emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"],
      emr_step_sensor_etl["t_seii_ofertaproces_procesocompr"]] >> \
-    emr_step_jobs_indic["ind_ofertas_costosas"] >> emr_step_sensor_indic["ind_ofertas_costosas"] >> [remove_cluster, create_table]
+    emr_step_jobs_indic["ind_ofertas_costosas"] >> emr_step_sensor_indic["ind_ofertas_costosas"] >> [remove_cluster,
+                                                                                                     create_table]
+    [emr_step_sensor_etl["t_otro_pernajuesadl_camarcomerci"],
+     emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
+    emr_step_jobs_indic["ind_contratos_prov_inactivos"] >> emr_step_sensor_indic["ind_contratos_prov_inactivos"] >> [remove_cluster, create_table]
 
-    [remove_cluster, create_table] >> await_query
+    [emr_step_sensor_etl["t_otro_persexpupoli_sigepperexpo"],
+     emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
+    emr_step_jobs_indic["ind_contratos_prov_PEP"] >> emr_step_sensor_indic["ind_contratos_prov_PEP"] >> [remove_cluster, create_table]
+
+    [emr_step_sensor_etl["t_otro_puestsensibl_sigeppsscorr"],
+     emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
+    emr_step_jobs_indic["ind_contratos_prov_pust_sensibles"] >> emr_step_sensor_indic["ind_contratos_prov_pust_sensibles"] >> [remove_cluster, create_table]
+
+    [emr_step_sensor_etl["t_seii_contracanela_aislamiencon"],
+     emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
+    emr_step_jobs_indic["ind_contratistas_contratos_cancel"] >> emr_step_sensor_indic["ind_contratistas_contratos_cancel"] >> [remove_cluster, create_table]
+
+    [emr_step_sensor_etl["t_seii_ejecucioncon_avancerevses"],
+     emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
+    emr_step_jobs_indic["ind_contratos_incumplimiento_entregas"] >> emr_step_sensor_indic["ind_contratos_incumplimiento_entregas"] >> [remove_cluster, create_table]
+
+    [emr_step_sensor_etl["t_seii_multasysanci_secopiimulsa"],
+     emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
+    emr_step_jobs_indic["ind_inhabilitados_multas"] >> emr_step_sensor_indic["ind_inhabilitados_multas"] >> [remove_cluster, create_table]
+
+    [emr_step_sensor_etl["t_paco_registro_obras_inconclusa"],
+     emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
+    emr_step_jobs_indic["ind_inhabilitados_obras_inconclusas"] >> emr_step_sensor_indic["ind_inhabilitados_obras_inconclusas"] >> [remove_cluster, create_table]
+
+    [emr_step_sensor_etl["t_paco_responsabilidad_fiscales"],
+     emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
+    emr_step_jobs_indic["ind_inhabilitados_resp_fiscal"] >> emr_step_sensor_indic["ind_inhabilitados_resp_fiscal"] >> [remove_cluster, create_table]
+    """
+
+    create_table >> await_query

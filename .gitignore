@@ -130,3 +130,4 @@ dmypy.json
 
 # Pycharm IDE
 .idea
+src/staging-zone/origen/*.csv

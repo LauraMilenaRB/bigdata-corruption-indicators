@@ -7,25 +7,27 @@ from datetime import date
 
 
 def transform_data(spark, key, date_origin, source_bucket, destination_bucket):
-    data_source = spark.read.option("multiline", "true").json(f"s3://{source_bucket}/{key}/{key}_{date_origin}.json")
+    #data_source = spark.read.option("multiline", "true").json(f"s3://{source_bucket}/{key}/{key}_{date_origin}.json")
+    data_source = spark.read.option("header", True).csv(f"s3://{source_bucket}/origen/SECOPII_-_Ofertas_Por_Proceso.csv")
+
     date_data = date.today()
     data_transform = data_source.select(
-        to_date(trim(col("fecha_de_registro")), "yyyy-mm-dd").alias("fecha_registro_oferta"),
-        trim(col("referencia_de_la_oferta")).alias("desc_oferta"),
-        trim(col("identificador_de_la_oferta")).alias("id_oferta"),
-        trim(col("valor_de_la_oferta")).cast("decimal(30,3)").alias("monto_oferta"),
-        trim(col("entidad_compradora")).alias("nombre_entidad"),
-        trim(col("nit_entidad_compradora")).alias("id_nit_entidad"),
-        trim(col("moneda")).alias("desc_moneda_monto"),
-        trim(col("descripcion_del_procedimiento")).alias("desc_contrato"),
-        trim(col("referencia_del_proceso")).alias("id_referencia"),
-        trim(col("id_del_proceso_de_compra")).alias("id_proceso_compra"),
-        trim(col("modalidad")).alias("tipo_contratacion"),
-        trim(col("invitacion_directa")).alias("tipo_invitacion_directa"),
-        upper(trim(col("nombre_proveedor"))).alias("nombre_proveedor"),
-        trim(col("nit_del_proveedor")).alias("id_nit_proveedor"),
-        trim(col("codigo_entidad")).alias("id_entidad"),
-        trim(col("codigo_proveedor")).alias("id_proveedor_secop"),
+        to_date(trim(col("Fecha de Registro")), "dd/MM/yyyy").alias("fecha_registro_oferta"),
+        trim(col("Referencia de la Oferta")).alias("desc_oferta"),
+        trim(col("Identificador de la Oferta")).alias("id_oferta"),
+        trim(col("Valor de la Oferta")).cast("decimal(30,3)").alias("monto_oferta"),
+        trim(col("Entidad Compradora")).alias("nombre_entidad"),
+        trim(col("NIT Entidad Compradora")).alias("id_nit_entidad"),
+        trim(col("Moneda")).alias("desc_moneda_monto"),
+        trim(col("Descripcion del Procedimiento")).alias("desc_contrato"),
+        trim(col("Referencia del Proceso")).alias("id_referencia"),
+        trim(col("ID del Proceso de Compra")).alias("id_proceso_compra"),
+        trim(col("Modalidad")).alias("tipo_contratacion"),
+        trim(col("Invitacion Directa")).alias("tipo_invitacion_directa"),
+        upper(trim(col("Nombre Proveedor"))).alias("nombre_proveedor"),
+        trim(col("NIT del Proveedor")).alias("id_nit_proveedor"),
+        trim(col("Codigo Entidad")).alias("id_entidad"),
+        trim(col("Codigo Proveedor")).alias("id_proveedor_secop"),
         lit(date_data).cast("date").alias("fecha_corte_datos")
     )
 
