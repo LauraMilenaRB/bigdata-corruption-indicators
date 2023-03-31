@@ -79,6 +79,7 @@ def run_job_flow_emr(session_client, emr_stream_name, concurrent_step, s3_logs_o
         client = session_client.client('emr')
         response = client.run_job_flow(
             Name=emr_stream_name,
+            ReleaseLabel='emr-5.36.0',
             LogUri=f's3://{s3_logs_output}/',
             Instances={
                 'InstanceGroups': [
@@ -126,8 +127,7 @@ def run_job_flow_emr(session_client, emr_stream_name, concurrent_step, s3_logs_o
             ],
             Applications=[
                 {
-                    'Name': 'Spark',
-                    'Version': 'string',
+                    'Name': 'Spark'
                 }
             ],
             VisibleToAllUsers=True,
@@ -135,7 +135,7 @@ def run_job_flow_emr(session_client, emr_stream_name, concurrent_step, s3_logs_o
             ServiceRole='EMR_DefaultRole',
             AutoScalingRole='EMR_AutoScaling_DefaultRole',
             ScaleDownBehavior='TERMINATE_AT_TASK_COMPLETION',
-            StepConcurrencyLevel=concurrent_step
+            StepConcurrencyLevel=int(concurrent_step)
         )
 
     except ClientError as e:

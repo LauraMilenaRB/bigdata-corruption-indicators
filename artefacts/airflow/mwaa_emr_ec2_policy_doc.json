@@ -14,7 +14,10 @@
         {
             "Effect": "Allow",
 
-            "Action": ["iam:PassRole","iam:GetRole"],
+            "Action": [
+                "iam:PassRole",
+                "iam:GetRole"
+            ],
             "Resource": [
                 "arn:aws:iam::{your-account-id}:role/EMR_DefaultRole",
                 "arn:aws:iam::{your-account-id}:role/EMR_EC2_DefaultRole",

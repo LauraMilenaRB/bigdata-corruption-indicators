@@ -93,7 +93,7 @@ JOB_FLOW_OVERRIDES = {
                 'InstanceCount': 1,
             }
         ],
-        'Ec2SubnetId': 'subnet-06bf3bf21d1733d83',
+        'Ec2SubnetId': 'subnet-0707de83974d240ba',
         'KeepJobFlowAliveWhenNoSteps': False,
         'TerminationProtected': False,
     },

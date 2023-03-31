@@ -97,11 +97,11 @@ def create_streams_flow():
     subnets_id = vpc.get_private_subnets_id(vpc_ids, session)
     print("tester", subnets_id[0])
     emr.run_job_flow_emr(session, emr_stream_name, concurrent_steps, s3_logs_output, subnets_id[0])
-    athena.query_execution(session, DDL_results, OutputLocation)
+    #athena.query_execution(session, DDL_results, OutputLocation)
 
 
 if __name__ == '__main__':
-    buckets_create_update()
-    create_vpc_subnets()
-    create_apache_airflow()
+    #buckets_create_update()
+    #create_vpc_subnets()
+    #create_apache_airflow()
     create_streams_flow()

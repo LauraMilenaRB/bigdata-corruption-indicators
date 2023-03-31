@@ -92,7 +92,7 @@ def steps_ind():
 
 with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * * 0",
          default_args=default_args, catchup=False, tags=['emr', 'mwaa']) as dag:
-    """
+
     download_origin_data = PythonOperator(
         task_id='download_origin',
         python_callable=download_dataset,
@@ -166,7 +166,6 @@ with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * *
         task_id="remove_cluster",
         job_flow_id="{{ task_instance.xcom_pull(task_ids='create_emr_cluster') }}"
     )
-    """
 
     create_table = AthenaOperator(
         task_id="create_table",
@@ -180,19 +179,7 @@ with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * *
         query_execution_id=create_table.output,
     )
 
-    repair_table = AthenaOperator(
-        task_id="repair_table",
-        query=repair_query,
-        database=athena_database,
-        output_location=f"s3://{output_location_athena}/",
-    )
 
-    await_query2 = AthenaSensor(
-        task_id="await_query2",
-        query_execution_id=create_table.output,
-    )
-
-    """
     download_origin_data >> [sensor_staging_bucket for sensor_staging_bucket in check_download_bucket] \
           >> create_emr_cluster
 
@@ -236,6 +223,6 @@ with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * *
     [emr_step_sensor_etl["t_paco_responsabilidad_fiscales"],
      emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
     emr_step_jobs_indic["ind_inhabilitados_resp_fiscal"] >> emr_step_sensor_indic["ind_inhabilitados_resp_fiscal"] >> [remove_cluster, create_table]
-    """
 
-    create_table >> await_query
+
+    create_table >> await_query1

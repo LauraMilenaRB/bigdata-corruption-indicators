@@ -64,7 +64,7 @@ def deleted_kinesis_stream():
 
     kinesis.delete_stream_kinesis(session, kinesis_stream_name)
     kinesis.delete_delivery_stream_kinesis(session, kinesis_delivery_stream_name)
-    athena.query_execution(session, f"DROP TABLE IF EXISTS {name_table_results};", OutputLocation)
+    #athena.query_execution(session, f"DROP TABLE IF EXISTS {name_table_results};", OutputLocation)
     kinesis.deleted_role_kinesis(session, kinesis_delivery_stream_name)
 
 
