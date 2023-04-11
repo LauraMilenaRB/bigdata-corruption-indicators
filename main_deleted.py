@@ -6,6 +6,7 @@ import athena
 import buckets
 import kinesis
 import emr
+import redshift
 import vpc
 import airflow
 from builtins import open
@@ -24,9 +25,8 @@ vpc_name = conf.get("variables_vpc").get("vpc_name")
 kinesis_stream_name = conf.get("variables_kinesis").get("kinesis_stream_name")
 kinesis_delivery_stream_name = conf.get("variables_kinesis").get("kinesis_delivery_stream_name")
 emr_stream_name = conf.get("variables_stream_emr").get("emr_stream_name")
-name_table_results = conf.get("variables_stream_athena").get("name_table_results")
-OutputLocation = conf.get("variables_stream_athena").get("OutputLocation")
 
+redshift_name_cluster = conf.get("variables_redshift").get("redshift_name_cluster")
 
 def deleted_buckets():
     print("**********************************************************\n"
@@ -64,8 +64,15 @@ def deleted_kinesis_stream():
 
     kinesis.delete_stream_kinesis(session, kinesis_stream_name)
     kinesis.delete_delivery_stream_kinesis(session, kinesis_delivery_stream_name)
-    #athena.query_execution(session, f"DROP TABLE IF EXISTS {name_table_results};", OutputLocation)
     kinesis.deleted_role_kinesis(session, kinesis_delivery_stream_name)
+
+
+def deleted_redshift():
+    print("**********************************************************\n"
+          "*                      Readshift                         *\n"
+          "**********************************************************")
+    redshift.deleted_roles_default_redshift(session, redshift_name_cluster)
+    redshift.deleted_cluster_redshift(session, redshift_name_cluster)
 
 
 if __name__ == '__main__':
@@ -73,4 +80,5 @@ if __name__ == '__main__':
     deleted_vpc()
     deleted_airflow()
     deleted_kinesis_stream()
+    deleted_redshift()
 

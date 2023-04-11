@@ -38,8 +38,8 @@ def transform_data(sources, destination_bucket):
         lit(date_data).cast("date").alias("fecha_ejecucion")
     )
 
-    df_result.write.partitionBy("fecha_ejecucion").mode("append") \
-        .parquet(f"s3://{destination_bucket}/t_result_indicadores_batch")
+    df_result.write.mode("append") \
+        .json(f"s3://{destination_bucket}/t_result_indicadores_batch")
     print(df_result.count())
     logging.info(f"Success write data frame t_result_indicadores_batch in {destination_bucket}")
 

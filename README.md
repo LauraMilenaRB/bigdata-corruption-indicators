@@ -9,15 +9,8 @@
 
 Para poder desplegar la arquitectura propuesta se desarrollaron los componentes requeridos con la siguiente estructura:
 
-
-
 ![img.png](img_1.png)
-
-
-
 ![img_1.png](img_2.png)
-
-
 
 1. **artefacts:** Se encuentran las funciones requeridas para poder crear, configurar y desplegar los servicios requeridos.
 
@@ -36,11 +29,8 @@ Para poder desplegar la arquitectura propuesta se desarrollaron los componentes 
 1. Instale AWS CLI en su máquina, para configurar las credenciales de uso de su cuenta principal, manual de instalación https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 
 2. Compruebe la instalación AWS CLI.
-
    ```
-
     aws --version
-
    ```
 
 3. Diríjase a su cuenta principal de AWS, luego al servicio IAM y cree uno nuevo de la siguiente manera:
@@ -56,39 +46,25 @@ Para poder desplegar la arquitectura propuesta se desarrollaron los componentes 
    5. Busque ***'Claves de acceso'*** y seleccione ***'Crear clave de acceso'***, luego de esto siga los pasos y descargue las credenciales.
 
    6. Luego abra la terminal de su computador y escriba:
-
-   ```
-
-    aws configure
-
-   ```
-
+      ```
+      aws configure
+      ```
+   
    7. Teniendo a mano el archivo de credenciales, complete lo siguiente:
-
-   ```
-
-    AWS Access Key ID: 
-
-    AWS Secret Access Key : 
-
-    Default region name:  
-
-   ```
-
+      ```
+      AWS Access Key ID:
+      AWS Secret Access Key:
+      Default region name:
+      ```
+      
    8. Verifique las credenciales configuradas
-
-   ```
-
-    aws configure list
-
-   ```
+      ```
+      aws configure list
+      ```
 
 4. Descargue y clone el repositorio del código fuente
-
-    ```
-
-    git clone https://github.com/LauraMilenaRB/ref-arch-corruption-indicators.git
-
+   ```
+   git clone https://github.com/LauraMilenaRB/ref-arch-corruption-indicators.git
    ```
 
 5. Configure las variables requeridas para la creación de los buckets, el servicio de apache airflow y las vpc
@@ -137,111 +113,116 @@ Para poder desplegar la arquitectura propuesta se desarrollaron los componentes 
    ![img_24.png](img_24.png)
    5. **Variables stream Amazon EMR**
    ![img_25.png](img_25.png)
-   6. **Variables Athena**
+   6. **Variables Redshift**
    ![img_26.png](img_26.png)
 
 6. Ejecute el Main principal, este tiene las funciones de creación de S3 Buckets, Apache airflow, VPCs, Kinesis, Amazon EMR y Athena.
-
    ![img_4.png](img_4.png)
 
 7. Verifique la creación de los buckets, carpetas y carga de archivos correspondientes en la consola de servicios de Amazon S3, este proceso puede demorar un poco si se suben archivos locales.
-
-   ![img_7.png](img_7.png)![img_8.png](img_8.png)
-
-8. Verifique la creación de la VPCs. Diríjase a CloudFormation en la consola de servicios de Amazon.
+   ![img_7.png](img_7.png)
+   ![img_8.png](img_8.png)
+8. Verifique la creación del cluster de Amazon Redshift, para esto diríjase en la consola de servicios de Amazon Redshift. y debe ver el cluster disponible,
+   ![img_44.png](img_44.png)
+   1. De clic en el cluster, luego en *'Datos de consulta'* > *Consulta en el editor de consultas v2*
+   ![img_45.png](img_45.png)
+   2. Verifiqué que las tablas de resultados que haya definido en el conf se hayan creado correctamente.
+   ![img_46.png](img_46.png)
+   
+9. Verifique la creación de la VPCs. Diríjase a CloudFormation en la consola de servicios de Amazon.
 
    ![img_9.png](img_9.png)
 
-9. Verifique la creación de Amazon MWAAA (Apache Airflow).
+10. Verifique la creación de Amazon MWAAA (Apache Airflow).
 
-   1. Primero, verifique la creación de roles y políticas asociadas al servicio.
-   ![img_10.png](img_10.png)
-   ![img_27.png](img_27.png)
-   2. Luego verifique que el entorno de Airflow este en creación. Tenga en cuenta que la creación de este servicio puede demorar entre 30 a 40 minutos aproximadamente.
-   ![img_11.png](img_11.png)
+    1. Primero, verifique la creación de roles y políticas asociadas al servicio.
+    ![img_10.png](img_10.png)
+    ![img_27.png](img_27.png)
+    2. Luego verifique que el entorno de Airflow este en creación. Tenga en cuenta que la creación de este servicio puede demorar entre 30 a 40 minutos aproximadamente.
+    ![img_11.png](img_11.png)
 
-   3. **IMPORTANTE:** Debe configurar algunas variables requeridas antes de abrir la interfaz de usuario de Airflow.
+    3. **IMPORTANTE:** Debe configurar algunas variables requeridas antes de abrir la interfaz de usuario de Airflow.
 
-      1. Para configurar el DAG, edité los siguientes archivos:
+       1. Para configurar el DAG, edité los siguientes archivos:
 
-         ![img_12.png](img_12.png)
+          ![img_12.png](img_12.png)
 
-         * **DAG-ContractingIndicators.py:** Contiene el código Python con el paso a paso de las tareas y servicios organizados para ejecutar.
+          * **DAG-ContractingIndicators.py:** Contiene el código Python con el paso a paso de las tareas y servicios organizados para ejecutar.
 
-         * **vars_emr_jobs.py:** Contiene las variables requeridas para el DAG.
+          * **vars_emr_jobs.py:** Contiene las variables requeridas para el DAG.
 
-           1. **endpoint_url_arg:** Diccionario de las URLs para descargar los archivos del nuestro caso de uso, Contratación Pública.
-           ![img_16.png](img_16.png)
-           2. **ind_sources:** Contiene los datos fuentes requeridos para poder empezar a procesar cada uno de los indicadores de corrupción.
-           ![img_17.png](img_17.png)
+            1. **endpoint_url_arg:** Diccionario de las URLs para descargar los archivos del nuestro caso de uso, Contratación Pública.
+            ![img_16.png](img_16.png)
+            2. **ind_sources:** Contiene los datos fuentes requeridos para poder empezar a procesar cada uno de los indicadores de corrupción.
+            ![img_17.png](img_17.png)
 
-           3. **JOB_FLOW_OVERRIDES:** Contiene toda la configuración para desplegar los clústeres de Spark para la ejecución de los ETLs y procesamientos.
+            3. **JOB_FLOW_OVERRIDES:** Contiene toda la configuración para desplegar los clústeres de Spark para la ejecución de los ETLs y procesamientos.
 
-              * **LogUri:** Modifique esta variable con el nombre del bucket que guardara los Logs del clúster
+               * **LogUri:** Modifique esta variable con el nombre del bucket que guardara los Logs del clúster
 
-              * **Ec2SubnetId:** Apenas despliegue la VPC verifique las subnets privadas desplegadas y remplace el valor existente por el Id de la subnet que tiene como descripción ***'vpc-mwaa - EMR - Private Subnet (AZ3)'***.
+               * **Ec2SubnetId:** Apenas despliegue la VPC verifique las subnets privadas desplegadas y remplace el valor existente por el Id de la subnet que tiene como descripción ***'vpc-mwaa - EMR - Private Subnet (AZ3)'***.
 
-                **NOTA IMPORTANTE**: Esta variable debe configurarse correctamente para que el servicio Amazon EMR se despliegue correctamente.
+                 **NOTA IMPORTANTE**: Esta variable debe configurarse correctamente para que el servicio Amazon EMR se despliegue correctamente.
 
-                ![img_28.png](img_28.png)
+                 ![img_28.png](img_28.png)
 
-                ![img_20.png](img_20.png)
+                 ![img_20.png](img_20.png)
 
-              * **StepConcurrencyLevel:** Esta variable determina cuantos steps concurrentes se pueden ejecutar en los clúster de EMR.
+               * **StepConcurrencyLevel:** Esta variable determina cuantos steps concurrentes se pueden ejecutar en los clúster de EMR.
 
-              * En este apartado hay muchas más variables que puede modificar, pero en este caso la configuración presentada es lo mínimo requerido para aprovisionar el servicio de EMR. Mas detalle https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/emr/client/run_job_flow.html
+               * En este apartado hay muchas más variables que puede modificar, pero en este caso la configuración presentada es lo mínimo requerido para aprovisionar el servicio de EMR. Mas detalle https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/emr/client/run_job_flow.html
 
-              ![img_18.png](img_18.png)
+               ![img_18.png](img_18.png)
 
-           4. * **athena_database:** El nombre de la base de datos de Athena para crear la tabla a consultar por quicksight.
+            4. * **athena_database:** El nombre de la base de datos de Athena para crear la tabla a consultar por quicksight.
 
-              * **output_location_athena:** El nombre del bucket donde se guardaran los resultados del query ejecutado. 
+               * **output_location_athena:** El nombre del bucket donde se guardaran los resultados del query ejecutado. 
 
-              * **DDL_results:** El DDL de la tabla final que contiene los resultados de los procesamientos de indicadores de corrupción. 
+               * **DDL_results:** El DDL de la tabla final que contiene los resultados de los procesamientos de indicadores de corrupción. 
 
-              ![img_19.png](img_19.png)
+               ![img_19.png](img_19.png)
 
-      2. Luego de editar las variables requeridas diríjase al Bucket S3 donde se almacena el archivo DAG.py y renplacelo por la nueva configuración.
+       2. Luego de editar las variables requeridas diríjase al Bucket S3 donde se almacena el archivo DAG.py y renplacelo por la nueva configuración.
 
-      ![img_29.png](img_29.png)
+       ![img_29.png](img_29.png)
 
-   4. Cuando se habilite el entorno y modifique las variables, puede dar clic en *'Abrir la interfaz de usuario de Airflow'*. 
+    4. Cuando se habilite el entorno y modifique las variables, puede dar clic en *'Abrir la interfaz de usuario de Airflow'*. 
 
-      * Si el DAG contiene algún error, verá algo como esto: ![img_13.png](img_13.png)
+       * Si el DAG contiene algún error, verá algo como esto: ![img_13.png](img_13.png)
 
-      * Si el DAG no contiene ningún error, verá algo como esto: ![img_14.png](img_14.png)
+       * Si el DAG no contiene ningún error, verá algo como esto: ![img_14.png](img_14.png)
 
-   5. Al dar clic en el DAG puede observar el detalle del flujo de datos. ![img_30.png](img_30.png)
+    5. Al dar clic en el DAG puede observar el detalle del flujo de datos. ![img_30.png](img_30.png)
 
-   6. Para iniciar el flujo debe dar clic en el botón *'Play'* solo si *'Next Run'* está configurado con una fecha futura, en dado caso que esté configurado con una fecha anterior a la actual solo debe habilitar el interruptor *'Pause/Unpause DAG'* que aparece en la esquina superior izquierda.
+    6. Para iniciar el flujo debe dar clic en el botón *'Play'* solo si *'Next Run'* está configurado con una fecha futura, en dado caso que esté configurado con una fecha anterior a la actual solo debe habilitar el interruptor *'Pause/Unpause DAG'* que aparece en la esquina superior izquierda.
 
-      ![img_36.png](img_36.png)
+       ![img_36.png](img_36.png)
 
-   7. Verifique el estado del flujo en la opción de *'Graph'*. Verá algo como esto:
+    7. Verifique el estado del flujo en la opción de *'Graph'*. Verá algo como esto:
 
-      ![img_15.png](img_15.png)
+       ![img_15.png](img_15.png)
 
-   8. Cuando el DAG se inicia el flujo de datos cambia de color de acuerdo a las convenciones definidas.
+    8. Cuando el DAG se inicia el flujo de datos cambia de color de acuerdo a las convenciones definidas.
 
-      ![img_21.png](img_21.png)
+       ![img_21.png](img_21.png)
 
-      1. Si en el flujo se presenta alguna falla, puede verificar el log dando clic sobre la tarea *'failed'* y luego dar clic en *'Log'*
-        ![img_31.png](img_31.png)
+       1. Si en el flujo se presenta alguna falla, puede verificar el log dando clic sobre la tarea *'failed'* y luego dar clic en *'Log'*
+         ![img_31.png](img_31.png)
       
-      ![img_32.png](img_32.png)
+       ![img_32.png](img_32.png)
 
-      2. También puede verificar los procesos batch en ejecución de spark buscando en la consola de servicios Amazon EMR. 
+       2. También puede verificar los procesos batch en ejecución de spark buscando en la consola de servicios Amazon EMR. 
 
-      ![img_34.png](img_34.png) ![img_35.png](img_35.png)
+       ![img_34.png](img_34.png) ![img_35.png](img_35.png)
 
-      Aquí debe verificar que todos los steps queden en estado *'Completado'*, en caso de que alguno falle puede validar el log correspondiente
+       Aquí debe verificar que todos los steps queden en estado *'Completado'*, en caso de que alguno falle puede validar el log correspondiente
 
-   9. Una de las ventajas de Airflow es que podemos personalizar la programación de los DAG en un horario definido y para nuestro caso de uso programamos el DAG a ejecutarse una vez por semana, cada domingo. 
-     A continuación puede ver en calendario configurado:
-     ![img_33.png](img_33.png)
+    9. Una de las ventajas de Airflow es que podemos personalizar la programación de los DAG en un horario definido y para nuestro caso de uso programamos el DAG a ejecutarse una vez por semana, cada domingo. 
+      A continuación puede ver en calendario configurado:
+      ![img_33.png](img_33.png)
 
-   10. Espere a que se complete todo el flujo de datos y verifique la creación de la tabla de resultados en Athena.
-     ![img_37.png](img_37.png)
+    10. Espere a que se complete todo el flujo de datos y verifique la creación de la tabla de resultados en Athena.
+      ![img_37.png](img_37.png)
 
 
 ### Para Streaming
@@ -250,10 +231,9 @@ Luego de verificar el despliegue de la arquitectura batch puede verificar el des
 1. Vaya a la consola de servicios y busqué kinesis. 
 
    1. Luego verifique que se haya creado kinesis data stream.
-   ![img_41.png](img_41.png)
-   
-   2. Verifique que se haya creado kinesis firehose. 
-   3. ![img_42.png](img_42.png)
+      ![img_41.png](img_41.png)
+      2. Verifique que se haya creado kinesis firehose. 
+      ![img_42.png](img_42.png)
 
 2. Verifique que se haya creado correctamente el clúster del servicio Amazon EMR y que se estén ejecutando los steps *'stream_etl'* y *'stream_ind'*. 
 
@@ -261,21 +241,23 @@ Luego de verificar el despliegue de la arquitectura batch puede verificar el des
 
 3. Para hacer uso de este flujo es necesario tener un productor el cual se encargara de enviar los datos a procesar, para nuestro caso de uso se desarrolló el consumidor *'producer_contracts'*.
    Este se encarga de generar contratos de manera automática y enviarlos a kinesis data stream cada 15 segundos aproximadamente.
-   
-    ![img_43.png](img_43.png)
+   ![img_43.png](img_43.png)
 
 ### Visualización y representación de datos
 
 1. Para validar los resultados y graficarlos vamos a la consola de Amazon QuickSight. 
 
-    1. Seleccione y de clic en *'Conjunto de datos'*  *'Nuevo conjunto de datos'*.
+    1. Seleccione y de clic en *'Conjunto de datos'* *'Nuevo conjunto de datos'*.
+       ![img_38.png](img_38.png)
+    2. Luego busque la opción *'Redshift' (Detección automatica)*, agregue los datos solicitados y haga clic en *'Crear origen de datos'*.
+       ![img_37.png](img_37.png)
+    3. Ya con este paso realizado podemos realizar la creación de las gráficas requeridas para visualizar y entender de una manera grafica el comportamiento de los datos.
+       ![img_39.png](img_39.png)
+    4. Aquí puede configurar y usar otras herramientas de BI como Power BI, Tableau o Microstrategy utilizando los valores típicos de conexión a una base de datos. El host, nombre de la base de datos, usuario y contraseña.
+       ![img_40.png](img_40.png)
+    
 
-    ![img_38.png](img_38.png)
+    
 
-    2. Luego busque la opcion *'Athena'*  *'Crear origen de datos'*.
 
-    ![img_39.png](img_39.png)
-
-    3. Por último seleccioné la tabla de resultados de Athena y clic en *'Seleccionar'*
-
-    ![img_40.png](img_40.png)
+    

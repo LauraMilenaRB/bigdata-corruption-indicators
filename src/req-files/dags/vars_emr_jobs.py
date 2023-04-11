@@ -111,13 +111,11 @@ JOB_FLOW_OVERRIDES = {
     ]
 
 }
-athena_database = "default"
-output_location_athena = "test-pgr-athena-results"
-DDL_results = "CREATE EXTERNAL TABLE IF NOT EXISTS t_result_indicadores (cantidad_irregularidades bigint," \
-              "cantidad_contratos_irregularidades bigint,monto_total_irregularidades decimal(30,3), " \
-              "cantidad_contratos_totales bigint) PARTITIONED BY (fecha_ejecucion date,nombre_indicador string," \
-              "nombre_grupo_indicador string) LOCATION 's3://test-pgr-curated-zone/t_result_indicadores_batch/';"
-repair_query = "MSCK REPAIR TABLE t_result_indicadores;"
+
+uri_conn = "jdbc:redshift://redshift.company.us-west-1.redshift.amazonaws.com:5439/bd_contracts;UID=user-redshift-admin;PWD=Redshift123"
+deleted_data_results = "delete from t_result_indicadores_batch;"
+insert_data_results = f"copy t_result_indicadores_batch from 's3://test-pgr-curated-zone/t_result_indicadores_batch/fecha_ejecucion={date_load_data}' " \
+                      f"iam_role 'arn:aws:iam::354824231875:role/AmazonRedshift-indicadores-role' format as json 'auto';"
 
 
 

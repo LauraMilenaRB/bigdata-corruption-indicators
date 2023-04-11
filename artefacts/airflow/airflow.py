@@ -36,12 +36,14 @@ def create_rol_execution_evn(session_client, bucked_dags_name, evn_name):
         iam.attach_role_policy(session_client, role_name,
                                f'arn:aws:iam::{identity.get("Account")}:policy/{policy_name}')
         iam.attach_role_policy(session_client, role_name, 'arn:aws:iam::aws:policy/AmazonS3FullAccess')
+        iam.attach_role_policy(session_client, role_name, 'arn:aws:iam::aws:policy/AmazonRedshiftAllCommandsFullAccess')
     except ClientError as e:
         logging.error(e)
         return False
-    time.sleep(20)
-    print(f"Create a role execution environment for MWAA {evn_name}")
-    return True
+    else:
+        time.sleep(20)
+        print(f"Create a role execution environment for MWAA {evn_name}")
+        return True
 
 
 def create_policy_emr_mwaa(session_client, evn_name):
@@ -70,12 +72,13 @@ def create_policy_emr_mwaa(session_client, evn_name):
     except ClientError as e:
         logging.error(e)
         return False
-    time.sleep(20)
-    print(f"Create a policy {policy_name} for execution environment MWAA {evn_name}")
-    return True
+    else:
+        time.sleep(20)
+        print(f"Create a policy {policy_name} for execution environment MWAA {evn_name} success")
+        return True
 
 
-def create_policy_athena_mwaa(session_client, evn_name):
+def create_policy_redshift_mwaa(session_client, evn_name):
     """Create a policy Amazon EMR for execution environment MWAA
 
     If a region is not specified, the bucket is created in the S3 default
@@ -88,10 +91,10 @@ def create_policy_athena_mwaa(session_client, evn_name):
     try:
         identity = session_client.client('sts').get_caller_identity()
 
-        policy_name = f'{evn_name}-Athena-policy'
+        policy_name = f'{evn_name}-Redshift-policy'
         role_name = f'{evn_name}-role'
 
-        file = open("artefacts/airflow/mwaa_athena_policy_doc.json", "r")
+        file = open("artefacts/redshift/redshift_assume_policy_doc.json", "r")
         ct_file = file.read().replace("{your-account-id}", identity.get("Account"))
         file.close()
         iam.create_policy(session_client, policy_name, ct_file)
@@ -101,9 +104,10 @@ def create_policy_athena_mwaa(session_client, evn_name):
     except ClientError as e:
         logging.error(e)
         return False
-    time.sleep(20)
-    print(f"Create a policy {policy_name} for execution environment MWAA {evn_name}")
-    return True
+    else:
+        time.sleep(20)
+        print(f"Create a policy {policy_name} for execution environment MWAA {evn_name} success")
+        return True
 
 
 def create_mwaa_evn(evn_name, bucked_dags_name, session_client, security_ids, subnet_ids):
@@ -164,9 +168,11 @@ def create_mwaa_evn(evn_name, bucked_dags_name, session_client, security_ids, su
     except ClientError as e:
         logging.error(e)
         return False
-    time.sleep(60)
-    print(f"Crete environment MWAA {evn_name}")
-    return True
+    else:
+        print(f"Creating environment MWAA {evn_name}...")
+        time.sleep(60)
+        print(f"Crete environment MWAA {evn_name} success")
+        return True
 
 
 def deleted_mwaa_evn(evn_name, session_client):
@@ -188,9 +194,10 @@ def deleted_mwaa_evn(evn_name, session_client):
     except ClientError as e:
         logging.error(e)
         return False
-    time.sleep(60)
-    print(f"Deleted environment MWAA {evn_name}")
-    return True
+    else:
+        time.sleep(60)
+        print(f"Deleted environment MWAA {evn_name}")
+        return True
 
 
 def deleted_rol_execution_evn(session_client, evn_name):
@@ -207,10 +214,12 @@ def deleted_rol_execution_evn(session_client, evn_name):
         iam.detach_role_policy(session_client, f'{evn_name}-policy', f'{evn_name}-role')
         iam.detach_role_policy(session_client, f'PassRole_EMR_EC2-policy', f'{evn_name}-role')
         iam.detach_role_policy_aws(session_client, f'AmazonS3FullAccess', f'{evn_name}-role')
+        iam.detach_role_policy_aws(session_client, f'AmazonRedshiftAllCommandsFullAccess', f'{evn_name}-role')
         iam.delete_role(session_client, f'{evn_name}-role')
     except ClientError as e:
         logging.error(e)
         return False
-    time.sleep(20)
-    print(f"Deleted role execution evn {evn_name} success")
-    return True
+    else:
+        time.sleep(20)
+        print(f"Deleted role execution evn {evn_name} success")
+        return True

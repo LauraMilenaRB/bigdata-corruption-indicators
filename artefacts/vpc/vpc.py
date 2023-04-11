@@ -28,6 +28,28 @@ def deleted_stack_template_vpc(session_client, stack_vpc_name):
     return True
 
 
+def created_default_vpc(session_client):
+    """Create an S3 bucket in a specified region
+
+    If a region is not specified, the bucket is created in the S3 default
+    region (us-east-1).
+
+    :param session_client:
+    :return: True if bucket created, else False
+    """
+    try:
+        my_region = session_client.region_name
+        session_client.client("ec2", region_name=my_region).create_default_vpc()
+    except ClientError as e:
+        logging.error(e)
+        return False
+    else:
+        print("Creating VPC default...")
+        time.sleep(30)
+        print("Create VPC default success")
+        return True
+
+
 def create_stack_template_vpc(stack_vpc_name, path_file, capabilities_par, session_client, conf_var):
     """Create an Stack Cloudformation
 
@@ -58,10 +80,11 @@ def create_stack_template_vpc(stack_vpc_name, path_file, capabilities_par, sessi
     except ClientError as e:
         logging.error(e)
         return False
-    print("Creating VPC...")
-    time.sleep(90)
-    print("Create stack vpc")
-    return True
+    else:
+        print("Creating VPC...")
+        time.sleep(90)
+        print("Create stack vpc success")
+        return True
 
 
 def deleted_vpc(session_client, vpc_id):

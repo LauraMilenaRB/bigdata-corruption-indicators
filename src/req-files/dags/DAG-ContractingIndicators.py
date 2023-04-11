@@ -1,6 +1,7 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 import boto3
+import psycopg2
 
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
@@ -11,8 +12,7 @@ from airflow.providers.amazon.aws.sensors.emr import EmrStepSensor
 from airflow.providers.amazon.aws.operators.emr import EmrAddStepsOperator
 from airflow.providers.amazon.aws.operators.emr import EmrCreateJobFlowOperator
 from airflow.providers.amazon.aws.operators.emr import EmrTerminateJobFlowOperator
-from airflow.providers.amazon.aws.operators.athena import AthenaOperator
-from airflow.providers.amazon.aws.sensors.athena import AthenaSensor
+from airflow.providers.amazon.aws.operators.redshift import RedshiftSQLOperator
 
 import requests
 from vars_emr_jobs import *
@@ -88,6 +88,29 @@ def steps_ind():
                 }
             }
     return dict_steps
+
+
+def create_query_redshift():
+    """Create a role execution environment for MWAA
+
+    If a region is not specified, the bucket is created in the S3 default
+    region (us-east-1).
+
+    :return: True if bucket created, else False
+
+    try:
+        conn = psycopg2.connect(
+            host=end_point,
+            port=5439,
+            user=username_db,
+            password=password_db,
+            database=name_bd
+        )
+
+        cursor = conn.cursor()
+        cursor.execute(query)
+        conn.commit()"""
+    pass
 
 
 with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * * 0",
@@ -167,62 +190,59 @@ with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * *
         job_flow_id="{{ task_instance.xcom_pull(task_ids='create_emr_cluster') }}"
     )
 
-    create_table = AthenaOperator(
-        task_id="create_table",
-        query=DDL_results,
-        database=athena_database,
-        output_location=f"s3://{output_location_athena}/",
+    task_insert_data = RedshiftSQLOperator(
+        task_id='task_insert_data',
+        redshift_conn_id=uri_conn,
+        sql=insert_data_results
     )
 
-    await_query1 = AthenaSensor(
-        task_id="await_query",
-        query_execution_id=create_table.output,
+    task_deleted_data = RedshiftSQLOperator(
+        task_id='task_deleted_data',
+        redshift_conn_id=uri_conn,
+        sql=deleted_data_results
     )
 
-
-    download_origin_data >> [sensor_staging_bucket for sensor_staging_bucket in check_download_bucket] \
-          >> create_emr_cluster
+    download_origin_data >> [sensor_staging_bucket for sensor_staging_bucket in check_download_bucket] >> create_emr_cluster
 
     [create_emr_cluster >> step >> sensor for step, sensor in zip(emr_step_jobs_etl.values(), emr_step_sensor_etl.values())]
 
     emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"] >> emr_step_jobs_indic["ind_abuso_contratacion"] >> \
-    emr_step_sensor_indic["ind_abuso_contratacion"] >> [remove_cluster, create_table]
+    emr_step_sensor_indic["ind_abuso_contratacion"] >> [remove_cluster, task_deleted_data]
 
     [emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"],
      emr_step_sensor_etl["t_seii_ofertaproces_procesocompr"]] >> \
-    emr_step_jobs_indic["ind_ofertas_costosas"] >> emr_step_sensor_indic["ind_ofertas_costosas"] >> [remove_cluster,
-                                                                                                     create_table]
+    emr_step_jobs_indic["ind_ofertas_costosas"] >> emr_step_sensor_indic["ind_ofertas_costosas"] >> [remove_cluster, task_deleted_data]
+
     [emr_step_sensor_etl["t_otro_pernajuesadl_camarcomerci"],
      emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
-    emr_step_jobs_indic["ind_contratos_prov_inactivos"] >> emr_step_sensor_indic["ind_contratos_prov_inactivos"] >> [remove_cluster, create_table]
+    emr_step_jobs_indic["ind_contratos_prov_inactivos"] >> emr_step_sensor_indic["ind_contratos_prov_inactivos"] >> [remove_cluster, task_deleted_data]
 
     [emr_step_sensor_etl["t_otro_persexpupoli_sigepperexpo"],
      emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
-    emr_step_jobs_indic["ind_contratos_prov_PEP"] >> emr_step_sensor_indic["ind_contratos_prov_PEP"] >> [remove_cluster, create_table]
+    emr_step_jobs_indic["ind_contratos_prov_PEP"] >> emr_step_sensor_indic["ind_contratos_prov_PEP"] >> [remove_cluster, task_deleted_data]
 
     [emr_step_sensor_etl["t_otro_puestsensibl_sigeppsscorr"],
      emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
-    emr_step_jobs_indic["ind_contratos_prov_pust_sensibles"] >> emr_step_sensor_indic["ind_contratos_prov_pust_sensibles"] >> [remove_cluster, create_table]
+    emr_step_jobs_indic["ind_contratos_prov_pust_sensibles"] >> emr_step_sensor_indic["ind_contratos_prov_pust_sensibles"] >> [remove_cluster, task_deleted_data]
 
     [emr_step_sensor_etl["t_seii_contracanela_aislamiencon"],
      emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
-    emr_step_jobs_indic["ind_contratistas_contratos_cancel"] >> emr_step_sensor_indic["ind_contratistas_contratos_cancel"] >> [remove_cluster, create_table]
+    emr_step_jobs_indic["ind_contratistas_contratos_cancel"] >> emr_step_sensor_indic["ind_contratistas_contratos_cancel"] >> [remove_cluster, task_deleted_data]
 
     [emr_step_sensor_etl["t_seii_ejecucioncon_avancerevses"],
      emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
-    emr_step_jobs_indic["ind_contratos_incumplimiento_entregas"] >> emr_step_sensor_indic["ind_contratos_incumplimiento_entregas"] >> [remove_cluster, create_table]
+    emr_step_jobs_indic["ind_contratos_incumplimiento_entregas"] >> emr_step_sensor_indic["ind_contratos_incumplimiento_entregas"] >> [remove_cluster, task_deleted_data]
 
     [emr_step_sensor_etl["t_seii_multasysanci_secopiimulsa"],
      emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
-    emr_step_jobs_indic["ind_inhabilitados_multas"] >> emr_step_sensor_indic["ind_inhabilitados_multas"] >> [remove_cluster, create_table]
+    emr_step_jobs_indic["ind_inhabilitados_multas"] >> emr_step_sensor_indic["ind_inhabilitados_multas"] >> [remove_cluster, task_insert_data >> task_deleted_data]
 
     [emr_step_sensor_etl["t_paco_registro_obras_inconclusa"],
      emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
-    emr_step_jobs_indic["ind_inhabilitados_obras_inconclusas"] >> emr_step_sensor_indic["ind_inhabilitados_obras_inconclusas"] >> [remove_cluster, create_table]
+    emr_step_jobs_indic["ind_inhabilitados_obras_inconclusas"] >> emr_step_sensor_indic["ind_inhabilitados_obras_inconclusas"] >> [remove_cluster, task_deleted_data]
 
     [emr_step_sensor_etl["t_paco_responsabilidad_fiscales"],
      emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
-    emr_step_jobs_indic["ind_inhabilitados_resp_fiscal"] >> emr_step_sensor_indic["ind_inhabilitados_resp_fiscal"] >> [remove_cluster, create_table]
+    emr_step_jobs_indic["ind_inhabilitados_resp_fiscal"] >> emr_step_sensor_indic["ind_inhabilitados_resp_fiscal"] >> [remove_cluster, task_insert_data >> task_deleted_data]
 
-
-    create_table >> await_query1
+    task_deleted_data >> task_insert_data

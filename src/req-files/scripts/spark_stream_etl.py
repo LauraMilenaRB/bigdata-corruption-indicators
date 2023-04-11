@@ -1,12 +1,13 @@
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 from pyspark.sql import SparkSession
-
+from datetime import date
 
 def main():
     spark = SparkSession.builder.appName('test').getOrCreate()
 
-    data_source = spark.readStream.text(f"s3://test-pgr-staging-zone/streaming_contracts/2023-03-18/*.snappy")
+    date_data = date.today()
+    data_source = spark.readStream.text(f"s3://test-pgr-staging-zone/t_streaming_contracts/{date_data}/*.snappy")
     print("read")
     query = data_source \
         .writeStream \
@@ -14,7 +15,7 @@ def main():
         .format(f"parquet") \
         .option("startingOffsets", "latest") \
         .option("checkpointLocation", f"s3://test-pgr-staging-zone/") \
-        .option("path", f"s3://test-pgr-staging-zone/test/") \
+        .option("path", f"s3://test-pgr-staging-zone/t_streaming_contracts/") \
         .start()
 
     print("read2")

@@ -1,10 +1,10 @@
 from configparser import ConfigParser
 import json
 import boto3
-import athena
 import buckets
 import kinesis
 import emr
+import redshift
 import vpc
 import airflow
 from builtins import open
@@ -30,8 +30,17 @@ column_partition_output_staging_zone = conf.get("variables_kinesis").get("column
 emr_stream_name = conf.get("variables_stream_emr").get("emr_stream_name")
 s3_logs_output = conf.get("variables_stream_emr").get("s3_logs_output")
 concurrent_steps = conf.get("variables_stream_emr").get("concurrent_steps")
-DDL_results = conf.get("variables_stream_athena").get("DDL_results")
-OutputLocation = conf.get("variables_stream_athena").get("OutputLocation")
+
+redshift_name_cluster = conf.get("variables_redshift").get("redshift_name_cluster")
+name_bd_redshift = conf.get("variables_redshift").get("name_bd")
+user_bd_redshift = conf.get("variables_redshift").get("user_bd")
+password_bd_redshift = conf.get("variables_redshift").get("password_bd")
+
+
+DDL_results_batch = conf.get("variables_redshift").get("DDL_results_batch")
+DDL_results_stream = conf.get("variables_redshift").get("DDL_results_stream")
+autoload_job_redshift_batch = conf.get("variables_redshift").get("autoload_job_redshift_batch")
+autoload_job_redshift_stream = conf.get("variables_redshift").get("autoload_job_redshift_stream")
 
 
 def buckets_create_update():
@@ -75,10 +84,9 @@ def create_apache_airflow():
     vpc_ids = vpc.get_vpc_id(vpc_name, session, conf.get("variables_vpc").get("vpcCIDR"))
     subnets_id = vpc.get_private_subnets_id(vpc_ids, session)
     sec_group = vpc.get_security_group_id(vpc_ids, session)
-    emr.create_roles_default_emr(session)
+    """emr.create_roles_default_emr(session)
     airflow.create_rol_execution_evn(session, bucket_dag_prefix, evn_name)
-    airflow.create_policy_emr_mwaa(session, evn_name)
-    airflow.create_policy_athena_mwaa(session, evn_name)
+    airflow.create_policy_emr_mwaa(session, evn_name)"""
     airflow.create_mwaa_evn(evn_name, bucket_dag_prefix, session, sec_group, subnets_id[1:])
 
 
@@ -95,13 +103,37 @@ def create_streams_flow():
 
     vpc_ids = vpc.get_vpc_id(vpc_name, session, conf.get("variables_vpc").get("vpcCIDR"))
     subnets_id = vpc.get_private_subnets_id(vpc_ids, session)
-    print("tester", subnets_id[0])
     emr.run_job_flow_emr(session, emr_stream_name, concurrent_steps, s3_logs_output, subnets_id[0])
-    #athena.query_execution(session, DDL_results, OutputLocation)
+
+
+def redshift_create_service():
+    print("**********************************************************\n"
+          "*                      Readshift                         *\n"
+          "**********************************************************")
+    redshift.create_roles_default_redshift(session, redshift_name_cluster)
+    vpc.created_default_vpc(session)
+    redshift.create_redshift_cluster(session, redshift_name_cluster, password_bd_redshift, user_bd_redshift, name_bd_redshift)
+
+    client = session.client('redshift')
+    cluster_list = client.describe_clusters().get('Clusters')[0]
+    endpoint = cluster_list.get('Endpoint').get('Address')
+
+    redshift.access_conf_query(session, cluster_list)
+
+    identity = session.client('sts').get_caller_identity()
+
+    redshift.create_query_redshift(DDL_results_batch, password_bd_redshift, user_bd_redshift, name_bd_redshift, endpoint)
+    autoload_job_redshift_batch.replace("{account}", identity.get('Account')).replace("{redshift_name_cluster}", redshift_name_cluster)
+
+    redshift.create_query_redshift(DDL_results_stream, password_bd_redshift, user_bd_redshift, name_bd_redshift, endpoint,)
+    autoload_job_redshift_stream.replace("{account}", identity.get('Account')).replace("{redshift_name_cluster}", redshift_name_cluster)
 
 
 if __name__ == '__main__':
-    #buckets_create_update()
-    #create_vpc_subnets()
-    #create_apache_airflow()
+    buckets_create_update()
+    redshift_create_service()
+    create_vpc_subnets()
+    create_apache_airflow()
     create_streams_flow()
+
+
