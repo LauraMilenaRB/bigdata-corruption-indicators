@@ -14,8 +14,8 @@ def main():
         .outputMode("append") \
         .format(f"parquet") \
         .option("startingOffsets", "latest") \
-        .option("checkpointLocation", f"s3://test-pgr-staging-zone/") \
-        .option("path", f"s3://test-pgr-staging-zone/t_streaming_contracts/") \
+        .option("checkpointLocation", f"s3://test-pgr-aws-logs/") \
+        .option("path", f"s3://test-pgr-raw-zone/t_streaming_contracts/{date_data}") \
         .start()
 
     print("read2")

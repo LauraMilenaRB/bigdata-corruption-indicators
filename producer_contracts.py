@@ -19,7 +19,7 @@ def get_data(id_contract):
     return {
         'event_date': date.today().isoformat(),
         'event_time': datetime.now().strftime("%H%M%S"),
-        'id_no_contrato': random.choice(id_contract),
+        'id_no_contrato': id_contract,
         'id_nit_entidad': random.choice(['890399010', '890399011', '890399000']),
         'id_nit_proveedor': random.choice(['21082091', '21082091']),
         'id_portafolio': random.choice(['21082091', '21082091']),
@@ -30,7 +30,8 @@ def get_data(id_contract):
                                                     'MUNICIPIOS ASOCIADOS PARA EL DESARROLLO DEL NORTE DE ANTIOQUIA MADENA',
                                                     'ABONDANO GUZMAN ESPERANZA']
                                                    ),
-        'monto_contrato': round(random.random() * 100, 2)}
+        'monto_contrato': round(random.random() * 100, 2)
+    }
 
 
 def generate(stream_name):

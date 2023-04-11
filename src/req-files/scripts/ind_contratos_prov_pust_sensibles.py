@@ -36,7 +36,7 @@ def transform_data(sources, destination_bucket):
     )
 
     df_result.write.mode("append") \
-        .json(f"s3://{destination_bucket}/t_result_indicadores_batch")
+        .json(f"s3://{destination_bucket}/t_result_indicadores_batch/fecha_ejecucion={date_data}")
     print(df_result.count())
     logging.info(f"Success write data frame t_result_indicadores_batch in {destination_bucket}")
 

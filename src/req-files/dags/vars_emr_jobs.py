@@ -93,8 +93,8 @@ JOB_FLOW_OVERRIDES = {
                 'InstanceCount': 1,
             }
         ],
-        'Ec2SubnetId': 'subnet-0707de83974d240ba',
-        'KeepJobFlowAliveWhenNoSteps': False,
+        'Ec2SubnetId': 'subnet-035c66bc728818498',
+        'KeepJobFlowAliveWhenNoSteps': True,
         'TerminationProtected': False,
     },
     'VisibleToAllUsers': True,
@@ -112,7 +112,10 @@ JOB_FLOW_OVERRIDES = {
 
 }
 
-uri_conn = "jdbc:redshift://redshift.company.us-west-1.redshift.amazonaws.com:5439/bd_contracts;UID=user-redshift-admin;PWD=Redshift123"
+endpoint_conn_arg = "amazonredshift-indicadores-cluster-1.c3ss5hvfzcj7.us-east-1.redshift.amazonaws.com"
+bd_name_arg = "bd_contracts"
+user_db_arg = "user-redshift-admin"
+psw_db_arg = "Redshift123"
 deleted_data_results = "delete from t_result_indicadores_batch;"
 insert_data_results = f"copy t_result_indicadores_batch from 's3://test-pgr-curated-zone/t_result_indicadores_batch/fecha_ejecucion={date_load_data}' " \
                       f"iam_role 'arn:aws:iam::354824231875:role/AmazonRedshift-indicadores-role' format as json 'auto';"

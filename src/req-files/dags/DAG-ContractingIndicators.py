@@ -1,6 +1,6 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
-import boto3
+import logging
 import psycopg2
 
 from airflow import DAG
@@ -12,7 +12,6 @@ from airflow.providers.amazon.aws.sensors.emr import EmrStepSensor
 from airflow.providers.amazon.aws.operators.emr import EmrAddStepsOperator
 from airflow.providers.amazon.aws.operators.emr import EmrCreateJobFlowOperator
 from airflow.providers.amazon.aws.operators.emr import EmrTerminateJobFlowOperator
-from airflow.providers.amazon.aws.operators.redshift import RedshiftSQLOperator
 
 import requests
 from vars_emr_jobs import *
@@ -90,15 +89,21 @@ def steps_ind():
     return dict_steps
 
 
-def create_query_redshift():
+def create_query_redshift(**context):
     """Create a role execution environment for MWAA
 
     If a region is not specified, the bucket is created in the S3 default
     region (us-east-1).
 
     :return: True if bucket created, else False
-
+    """
     try:
+        query = context['query_arg']
+        password_db = context['password_db_arg']
+        end_point = context['end_point_arg']
+        name_bd = context['name_bd_arg']
+        username_db = context['username_db_arg']
+        print(query, end_point, username_db, password_db, name_bd)
         conn = psycopg2.connect(
             host=end_point,
             port=5439,
@@ -109,8 +114,14 @@ def create_query_redshift():
 
         cursor = conn.cursor()
         cursor.execute(query)
-        conn.commit()"""
-    pass
+        conn.commit()
+        conn.close()
+
+    except Exception as e:
+        logging.error(e)
+        return False
+    else:
+        return True
 
 
 with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * * 0",
@@ -190,17 +201,22 @@ with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * *
         job_flow_id="{{ task_instance.xcom_pull(task_ids='create_emr_cluster') }}"
     )
 
-    task_insert_data = RedshiftSQLOperator(
-        task_id='task_insert_data',
-        redshift_conn_id=uri_conn,
-        sql=insert_data_results
+    task_deleted_data = PythonOperator(
+        task_id='task_deleted_data',
+        python_callable=create_query_redshift,
+        provide_context=True,
+        op_kwargs={'query_arg': deleted_data_results, 'password_db_arg': psw_db_arg, 'end_point_arg': endpoint_conn_arg,
+                   'name_bd_arg': bd_name_arg, 'username_db_arg': user_db_arg},
     )
 
-    task_deleted_data = RedshiftSQLOperator(
-        task_id='task_deleted_data',
-        redshift_conn_id=uri_conn,
-        sql=deleted_data_results
+    task_insert_data = PythonOperator(
+        task_id='task_insert_data',
+        python_callable=create_query_redshift,
+        provide_context=True,
+        op_kwargs={'query_arg': insert_data_results, 'password_db_arg': psw_db_arg, 'end_point_arg': endpoint_conn_arg,
+                   'name_bd_arg': bd_name_arg, 'username_db_arg': user_db_arg},
     )
+
 
     download_origin_data >> [sensor_staging_bucket for sensor_staging_bucket in check_download_bucket] >> create_emr_cluster
 
@@ -235,7 +251,7 @@ with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * *
 
     [emr_step_sensor_etl["t_seii_multasysanci_secopiimulsa"],
      emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
-    emr_step_jobs_indic["ind_inhabilitados_multas"] >> emr_step_sensor_indic["ind_inhabilitados_multas"] >> [remove_cluster, task_insert_data >> task_deleted_data]
+    emr_step_jobs_indic["ind_inhabilitados_multas"] >> emr_step_sensor_indic["ind_inhabilitados_multas"] >> [remove_cluster, task_deleted_data]
 
     [emr_step_sensor_etl["t_paco_registro_obras_inconclusa"],
      emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
@@ -243,6 +259,7 @@ with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * *
 
     [emr_step_sensor_etl["t_paco_responsabilidad_fiscales"],
      emr_step_sensor_etl["t_seii_procecotrata_compraadjudi"]] >> \
-    emr_step_jobs_indic["ind_inhabilitados_resp_fiscal"] >> emr_step_sensor_indic["ind_inhabilitados_resp_fiscal"] >> [remove_cluster, task_insert_data >> task_deleted_data]
+    emr_step_jobs_indic["ind_inhabilitados_resp_fiscal"] >> emr_step_sensor_indic["ind_inhabilitados_resp_fiscal"] >> [remove_cluster, task_deleted_data]
+    
 
     task_deleted_data >> task_insert_data

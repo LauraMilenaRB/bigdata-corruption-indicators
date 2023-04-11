@@ -1,3 +1,4 @@
+import psycopg2
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 from pyspark.sql import SparkSession
@@ -9,7 +10,7 @@ def get_data_frames(spark, list_source, date_origin):
     for sources in list_source:
         item = sources.split("/")[-1]
         print(f"{sources}/fecha_corte_datos={date_origin}")
-        dict_sources[item] = spark.read.parquet(f"{item}/fecha_corte_datos={date_origin}")
+        dict_sources[item] = spark.read.parquet(f"{sources}/fecha_corte_datos={date_origin}")
     return dict_sources
 
 
@@ -210,16 +211,36 @@ def main():
         print(df.show(1))
         dfFinal = dfFinal.union(df)
 
+    deleted_data_results = "delete from t_result_indicadores_stream;"
+    insert_data_results = f"copy t_result_indicadores_stream from 's3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data} " \
+                          f"iam_role 'arn:aws:iam::354824231875:role/AmazonRedshift-indicadores-role' format as json 'auto';"
+
+    conn = psycopg2.connect(
+        host='amazonredshift-indicadores-cluster-1.c3ss5hvfzcj7.us-east-1.redshift.amazonaws.com',
+        port=5439,
+        user='user-redshift-admin',
+        password='Redshift123',
+        database='bd_contracts'
+    )
+
     query = dfFinal \
         .writeStream \
         .outputMode("append") \
         .format(f"json") \
         .option("startingOffsets", "latest") \
-        .option("checkpointLocation", f"s3://test-pgr-staging-zone/") \
-        .option("path", f"s3://test-pgr-curated-zone/t_result_indicadores_stream/") \
+        .option("checkpointLocation", f"s3://test-pgr-aws-logs/") \
+        .option("path", f"s3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data}/") \
         .start()
 
+    print("insert table")
+    cursor = conn.cursor()
+    cursor.execute(deleted_data_results)
+    conn.commit()
+    cursor.execute(insert_data_results)
+    conn.commit()
+    conn.close()
     print("write")
+
     query.awaitTermination()
 
 

@@ -116,7 +116,7 @@ Para poder desplegar la arquitectura propuesta se desarrollaron los componentes 
    6. **Variables Redshift**
    ![img_26.png](img_26.png)
 
-6. Ejecute el Main principal, este tiene las funciones de creación de S3 Buckets, Apache airflow, VPCs, Kinesis, Amazon EMR y Athena.
+6. Ejecute el Main principal, este tiene las funciones de creación de S3 Buckets, Apache airflow, VPCs, Kinesis, Amazon EMR y Amazon Redshift.
    ![img_4.png](img_4.png)
 
 7. Verifique la creación de los buckets, carpetas y carga de archivos correspondientes en la consola de servicios de Amazon S3, este proceso puede demorar un poco si se suben archivos locales.
@@ -138,7 +138,7 @@ Para poder desplegar la arquitectura propuesta se desarrollaron los componentes 
     1. Primero, verifique la creación de roles y políticas asociadas al servicio.
     ![img_10.png](img_10.png)
     ![img_27.png](img_27.png)
-    2. Luego verifique que el entorno de Airflow este en creación. Tenga en cuenta que la creación de este servicio puede demorar entre 30 a 40 minutos aproximadamente.
+    2. Luego verifique que el entorno de Airflow este en creación. Tenga en cuenta que la creación de este servicio puede demorar entre 30 minutos a 1 hora aproximadamente.
     ![img_11.png](img_11.png)
 
     3. **IMPORTANTE:** Debe configurar algunas variables requeridas antes de abrir la interfaz de usuario de Airflow.
@@ -174,11 +174,12 @@ Para poder desplegar la arquitectura propuesta se desarrollaron los componentes 
 
                ![img_18.png](img_18.png)
 
-            4. * **athena_database:** El nombre de la base de datos de Athena para crear la tabla a consultar por quicksight.
-
-               * **output_location_athena:** El nombre del bucket donde se guardaran los resultados del query ejecutado. 
-
-               * **DDL_results:** El DDL de la tabla final que contiene los resultados de los procesamientos de indicadores de corrupción. 
+            4. * **endpoint_conn_arg:** .
+               * **bd_name_arg:** El nombre de la base de datos de Amazon Redshift para crear la tabla a consultar por quicksight.
+               * **user_db_arg:** El usuario de la base de datos de Amazon Redshift.
+               * **psw_db_arg:** La contraseña de la base de datos de Amazon Redshift.
+               * **deleted_data_results:** La consulta para borrar los datos cargados en Amazon Redshift.
+               * **insert_data_results:** La consulta para insertar datos en Amazon Redshift. 
 
                ![img_19.png](img_19.png)
 
@@ -221,7 +222,7 @@ Para poder desplegar la arquitectura propuesta se desarrollaron los componentes 
       A continuación puede ver en calendario configurado:
       ![img_33.png](img_33.png)
 
-    10. Espere a que se complete todo el flujo de datos y verifique la creación de la tabla de resultados en Athena.
+    10. Espere a que se complete todo el flujo de datos y verifique la creación de la tabla de resultados en Redshift.
       ![img_37.png](img_37.png)
 
 
