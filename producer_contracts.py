@@ -4,6 +4,7 @@ import random
 from configparser import ConfigParser
 import time
 import boto3
+import pytz
 
 config = ConfigParser()
 conf = json.load(open("src/config.conf"))
@@ -36,6 +37,7 @@ def get_data(id_contract):
 
 def generate(stream_name):
     print(stream_name)
+
     count = 1
     while True:
         kinesis_client = session.client('kinesis')

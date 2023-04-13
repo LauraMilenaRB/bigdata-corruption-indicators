@@ -39,8 +39,6 @@ password_bd_redshift = conf.get("variables_redshift").get("password_bd")
 
 DDL_results_batch = conf.get("variables_redshift").get("DDL_results_batch")
 DDL_results_stream = conf.get("variables_redshift").get("DDL_results_stream")
-autoload_job_redshift_batch = conf.get("variables_redshift").get("autoload_job_redshift_batch")
-autoload_job_redshift_stream = conf.get("variables_redshift").get("autoload_job_redshift_stream")
 
 
 def create_update_buckets():
@@ -125,17 +123,14 @@ def create_service_redshift():
     identity = session.client('sts').get_caller_identity()
 
     redshift.create_query_redshift(DDL_results_batch, password_bd_redshift, user_bd_redshift, name_bd_redshift, endpoint)
-    autoload_job_redshift_batch.replace("{account}", identity.get('Account')).replace("{redshift_name_cluster}", redshift_name_cluster)
-    redshift.create_query_redshift(DDL_results_stream, password_bd_redshift, user_bd_redshift, name_bd_redshift, endpoint,)
-    autoload_job_redshift_stream.replace("{account}", identity.get('Account')).replace("{redshift_name_cluster}", redshift_name_cluster)
-
+    redshift.create_query_redshift(DDL_results_stream, password_bd_redshift, user_bd_redshift, name_bd_redshift, endpoint)
 
 if __name__ == '__main__':
     #create_update_buckets()
     create_service_redshift()
-    create_vpc_subnets()
+    #create_vpc_subnets()
     #create_apache_airflow()
-    emr.create_roles_default_emr(session)
-    create_streams_flow()
+    #emr.create_roles_default_emr(session)
+    #create_streams_flow()
 
 

@@ -80,7 +80,7 @@ def run_job_flow_emr(session_client, emr_stream_name, concurrent_step, s3_logs_o
         response = client.run_job_flow(
             Name=emr_stream_name,
             ReleaseLabel='emr-5.36.0',
-            LogUri=f's3://{s3_logs_output}/',
+            LogUri=f's3://{s3_logs_output}/elasticmapreduce/streaming/',
             Instances={
                 'InstanceGroups': [
                     {
@@ -95,14 +95,23 @@ def run_job_flow_emr(session_client, emr_stream_name, concurrent_step, s3_logs_o
                         'Market': 'ON_DEMAND',
                         'InstanceRole': 'CORE',
                         'InstanceType': 'm5.xlarge',
-                        'InstanceCount': 1
-                    },
+                        'InstanceCount': 2
+                    }
                 ],
                 'KeepJobFlowAliveWhenNoSteps': True,
                 'TerminationProtected': False,
                 'Ec2SubnetId': private_subnet_id,
             },
             Steps=[
+                {
+                    'Name': 'sudo install psycopg2',
+                    'ActionOnFailure': 'CONTINUE',
+                    'HadoopJarStep': {
+                        'Jar': 'command-runner.jar',
+                        'Args': ['sudo', 'pip3', 'install', 'psycopg2-binary']
+
+                    }
+                },
                 {
                     'Name': 'spark_stream_etl',
                     'ActionOnFailure': 'CONTINUE',

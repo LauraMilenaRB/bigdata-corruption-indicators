@@ -233,15 +233,15 @@ Luego de verificar el despliegue de la arquitectura batch puede verificar el des
 
    1. Luego verifique que se haya creado kinesis data stream.
       ![img_41.png](img_41.png)
-      2. Verifique que se haya creado kinesis firehose. 
+   2. Verifique que se haya creado kinesis firehose.
       ![img_42.png](img_42.png)
 
 2. Verifique que se haya creado correctamente el clúster del servicio Amazon EMR y que se estén ejecutando los steps *'stream_etl'* y *'stream_ind'*. 
-
+    ![img_47.png](img_47.png)
    **Nota:** En este caso solo hay dos steps los cuales se ejecutaran indefinidamente, ya que deben estar disponibles lo mismo que dure el consumidor enviando contratos para ser procesados.
 
 3. Para hacer uso de este flujo es necesario tener un productor el cual se encargara de enviar los datos a procesar, para nuestro caso de uso se desarrolló el consumidor *'producer_contracts'*.
-   Este se encarga de generar contratos de manera automática y enviarlos a kinesis data stream cada 15 segundos aproximadamente.
+   Este se encarga de generar contratos de manera automática y enviarlos a kinesis data stream cada 15 segundos aproximadamente. Ejecútelo cuando haya verificado que los steps se estén ejecutando.
    ![img_43.png](img_43.png)
 
 ### Visualización y representación de datos
