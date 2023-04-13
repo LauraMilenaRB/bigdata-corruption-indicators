@@ -102,17 +102,29 @@ def create_streams_flow():
 
     vpc_ids = vpc.get_vpc_id(vpc_name, session, conf.get("variables_vpc").get("vpcCIDR"))
     subnets_id = vpc.get_private_subnets_id(vpc_ids, session)
-    emr.run_job_flow_emr(session, emr_stream_name, concurrent_steps, s3_logs_output, subnets_id[0])
+
+    client = session.client('redshift')
+    cluster_list = client.describe_clusters().get('Clusters')[0]
+    endpoint = cluster_list.get('Endpoint').get('Address')
+    print(endpoint)
+
+    emr.run_job_flow_emr(session, emr_stream_name, concurrent_steps, s3_logs_output, subnets_id[0],
+                         endpoint, password_bd_redshift, user_bd_redshift, name_bd_redshift)
 
 
 def create_service_redshift():
     print("**********************************************************\n"
           "*                      Readshift                         *\n"
           "**********************************************************")
-
     redshift.create_roles_default_redshift(session, redshift_name_cluster)
     vpc.created_default_vpc(session)
     redshift.create_redshift_cluster(session, redshift_name_cluster, password_bd_redshift, user_bd_redshift, name_bd_redshift)
+
+
+def create_tables_redshift():
+    print("**********************************************************\n"
+          "*                  Readshift DDL's                       *\n"
+          "**********************************************************")
 
     client = session.client('redshift')
     cluster_list = client.describe_clusters().get('Clusters')[0]
@@ -120,17 +132,16 @@ def create_service_redshift():
     print(endpoint)
 
     redshift.access_conf_query(session, cluster_list)
-    identity = session.client('sts').get_caller_identity()
-
     redshift.create_query_redshift(DDL_results_batch, password_bd_redshift, user_bd_redshift, name_bd_redshift, endpoint)
     redshift.create_query_redshift(DDL_results_stream, password_bd_redshift, user_bd_redshift, name_bd_redshift, endpoint)
+
 
 if __name__ == '__main__':
     #create_update_buckets()
     create_service_redshift()
-    #create_vpc_subnets()
+    create_vpc_subnets()
     #create_apache_airflow()
-    #emr.create_roles_default_emr(session)
-    #create_streams_flow()
+    create_streams_flow()
+    create_tables_redshift()
 
 

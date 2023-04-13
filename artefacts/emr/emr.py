@@ -58,11 +58,13 @@ def deleted_roles_default_emr(session_client):
     except ClientError as e:
         logging.error(e)
         return False
-    print("deleted role default erm")
-    return True
+    else:
+        print("deleted role default erm")
+        return True
 
 
-def run_job_flow_emr(session_client, emr_stream_name, concurrent_step, s3_logs_output, private_subnet_id):
+def run_job_flow_emr(session_client, emr_stream_name, concurrent_step, s3_logs_output, private_subnet_id,
+                     endpoint, password, user, database):
     """Create a role execution environment for MWAA
 
     If a region is not specified, the bucket is created in the S3 default
@@ -73,6 +75,10 @@ def run_job_flow_emr(session_client, emr_stream_name, concurrent_step, s3_logs_o
     :param concurrent_step:
     :param s3_logs_output:
     :param private_subnet_id:
+    :param endpoint:
+    :param password:
+    :param user:
+    :param database:
     :return: True if bucket created, else False
     """
     try:
@@ -129,7 +135,8 @@ def run_job_flow_emr(session_client, emr_stream_name, concurrent_step, s3_logs_o
                     'HadoopJarStep': {
                         'Jar': 'command-runner.jar',
                         'Args': ['spark-submit', '--master', 'yarn',
-                                 '--deploy-mode', 'client', f's3://test-pgr-req-files/scripts/spark_stream_ind.py'
+                                 '--deploy-mode', 'client', f's3://test-pgr-req-files/scripts/spark_stream_ind.py',
+                                 '--endpoint', endpoint, '--pwd', password, '--user', user, '--db', database
                                  ]
                     }
                 }
@@ -150,6 +157,7 @@ def run_job_flow_emr(session_client, emr_stream_name, concurrent_step, s3_logs_o
     except ClientError as e:
         logging.error(e)
         return False
-    time.sleep(20)
-    print("Run EMR job flow")
-    return True
+    else:
+        time.sleep(20)
+        print("Run EMR job flow")
+        return True

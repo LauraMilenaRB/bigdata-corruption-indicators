@@ -2,6 +2,7 @@ import psycopg2
 from pyspark.sql.functions import *
 from pyspark.sql import SparkSession
 from datetime import datetime
+import argparse
 import time
 import pytz
 
@@ -313,9 +314,20 @@ def get_data_frames(spark, list_source):
     return dict_sources
 
 
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='PySpark Job Arguments')
+    parser.add_argument('--endpoint', action='store', type=str, required=True)
+    parser.add_argument('--user', action='store', type=str, required=True)
+    parser.add_argument('--pwd', action='store', type=str, required=True)
+    parser.add_argument('--db', action='store', type=str, required=True)
+    args = parser.parse_args()
+    return args
+
+
 def main():
     spark = SparkSession.builder.appName('master-stream').getOrCreate()
     spark.sql("set spark.sql.streaming.schemaInference=true")
+    pyspark_args = parse_arguments()
     list_source = ["s3://test-pgr-raw-zone/t_seii_procecotrata_compraadjudi",
                    "s3://test-pgr-raw-zone/t_seii_contracanela_aislamiencon",
                    "s3://test-pgr-raw-zone/t_otro_pernajuesadl_camarcomerci",
@@ -332,6 +344,18 @@ def main():
     print(f"Read parquet s3://test-pgr-raw-zone/t_streaming_contracts/{date_data}/")
     data_frames_origin = get_data_frames(spark, list_source)
 
+    deleted_data_results = "delete from t_result_indicadores_stream;"
+    insert_data_results = f"copy t_result_indicadores_stream from 's3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data} " \
+                          f"iam_role 'arn:aws:iam::354824231875:role/AmazonRedshift-indicadores-role' format as json 'auto';"
+
+    conn = psycopg2.connect(
+        host=pyspark_args.endpoint,
+        port=5439,
+        user=pyspark_args.user,
+        password=pyspark_args.pwd,
+        database=pyspark_args.db
+    )
+
     df1 = ind_abuso_contratacion(data_frames_origin["t_seii_procecotrata_compraadjudi"], date_data, data_source)
     #df2 = ind_ofertas_costosas(data_frames_origin["t_seii_ofertaproces_procesocompr"], date_data, data_source)
     df3 = ind_contratos_prov_inactivos(data_frames_origin["t_otro_pernajuesadl_camarcomerci"], date_data, data_source)
@@ -342,18 +366,6 @@ def main():
     df8 = ind_inhabilitados_multas(data_frames_origin["t_seii_multasysanci_secopiimulsa"], date_data, data_source)
     df9 = ind_inhabilitados_obras_inconclusas(data_frames_origin["t_paco_registro_obras_inconclusa"], date_data, data_source)
     df10 = ind_inhabilitados_resp_fiscal(data_frames_origin["t_paco_responsabilidad_fiscales"], date_data, data_source)
-
-    deleted_data_results = "delete from t_result_indicadores_stream;"
-    insert_data_results = f"copy t_result_indicadores_stream from 's3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data} " \
-                          f"iam_role 'arn:aws:iam::354824231875:role/AmazonRedshift-indicadores-role' format as json 'auto';"
-
-    conn = psycopg2.connect(
-        host='amazonredshift-indicadores-cluster-1.c3ss5hvfzcj7.us-east-1.redshift.amazonaws.com',
-        port=5439,
-        user='user-redshift-admin',
-        password='Redshift123',
-        database='bd_contracts'
-    )
 
     print("insert table")
     cursor = conn.cursor()
