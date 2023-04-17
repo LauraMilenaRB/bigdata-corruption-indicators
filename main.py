@@ -106,7 +106,7 @@ def create_streams_flow():
     client = session.client('redshift')
     cluster_list = client.describe_clusters().get('Clusters')[0]
     endpoint = cluster_list.get('Endpoint').get('Address')
-    print(endpoint)
+    print(subnets_id)
 
     emr.run_job_flow_emr(session, emr_stream_name, concurrent_steps, s3_logs_output, subnets_id[0],
                          endpoint, password_bd_redshift, user_bd_redshift, name_bd_redshift)
@@ -128,6 +128,7 @@ def create_tables_redshift():
 
     client = session.client('redshift')
     cluster_list = client.describe_clusters().get('Clusters')[0]
+    cluster_list.get('Endpoint').get('Address')
     endpoint = cluster_list.get('Endpoint').get('Address')
     print(endpoint)
 
@@ -138,10 +139,10 @@ def create_tables_redshift():
 
 if __name__ == '__main__':
     #create_update_buckets()
-    create_service_redshift()
+    #create_service_redshift()
     create_vpc_subnets()
     #create_apache_airflow()
-    create_streams_flow()
-    create_tables_redshift()
+    #create_streams_flow()
+    #create_tables_redshift()
 
 

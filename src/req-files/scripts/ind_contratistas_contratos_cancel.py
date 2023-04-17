@@ -2,8 +2,8 @@ import logging
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
-from pyspark.sql.window import Window
-from pyspark.sql.functions import row_number
+from datetime import datetime
+import pytz
 import argparse
 from datetime import date
 
@@ -20,21 +20,22 @@ def get_data_frames(spark, list_source, date_origin):
 def transform_data(sources, destination_bucket):
     dfCoCa = sources["t_seii_contracanela_aislamiencon"]
     dfPrCon = sources["t_seii_procecotrata_compraadjudi"]
-    date_data = date.today()
+    date_data = datetime.now(pytz.timezone('America/Bogota')).date().isoformat()
 
     dfProveedoresCancelados = dfCoCa.groupBy(col("id_nit_rep_legal")).count()
 
-    dfFinal = dfPrCon.dropDuplicates(["id_portafolio"]).alias("contratos").join(dfProveedoresCancelados.alias("cancelados"),
-                                                                                col("contratos.id_nit_proveedor")==col("cancelados.id_nit_rep_legal"), "inner")\
-        .filter(~col("cancelados.id_nit_rep_legal").isin("No Definido"))
+    df31 = dfPrCon.dropDuplicates(["id_portafolio"]).alias("contratos").join(
+        dfProveedoresCancelados.alias("cancelados"),
+        col("contratos.id_nit_proveedor") == col("cancelados.id_nit_rep_legal"), "inner").filter(
+        ~col("cancelados.id_nit_rep_legal").isin("No Definido"))
 
-    df_result = dfFinal.agg(
+    df_result = df31.agg(
         lit("indicadores incumplimiento").cast("string").alias("nombre_grupo_indicador"),
         lit("contratistas con contratos cancelados").cast("string").alias("nombre_indicador"),
         countDistinct(col("contratos.id_nit_proveedor")).cast("long").alias("cantidad_irregularidades"),
         countDistinct(col("id_portafolio")).cast("long").alias("cantidad_contratos_irregularidades"),
-        sum("monto_total_adjudicado").cast("decimal(30,3)").alias("monto_total_irregularidades"),
-        countDistinct(col("id_portafolio")).cast("long").alias("cantidad_contratos"),
+        sum("monto_precio_base").cast("decimal(30,3)").alias("monto_total_irregularidades"),
+        lit(dfPrCon.count()).cast("long").alias("cantidad_contratos_totales"),
         lit(date_data).cast("date").alias("fecha_ejecucion")
     )
 

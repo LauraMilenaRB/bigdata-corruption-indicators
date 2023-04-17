@@ -17,10 +17,8 @@ def ind_abuso_contratacion(dfPrCon, date_data, df):
                 col("monto_total_adjudicado").alias("monto_contrato")) \
         .union(df).filter(~col("id_nit_proveedor").isin("No Definido", "No Adjudicado")) \
         .withColumn("timestamp", lit(time.time()).cast("timestamp")).withWatermark("timestamp", "60 seconds") \
-        .groupBy(col("id_no_contrato"), col("id_nit_entidad"), col("id_nit_proveedor"),
-                 window(col("timestamp"), "5 minutes").alias("window")) \
-        .agg(count("*").alias("cantidad_asignadas"), sum("monto_contrato").alias("monto_contrato"),
-             max("timestamp").alias("fecha_ejecucion"))
+        .groupBy(col("id_no_contrato"), col("id_nit_entidad"), col("id_nit_proveedor")) \
+        .agg(count("*").alias("cantidad_asignadas"), sum("monto_contrato").alias("monto_contrato"))
 
     dfFinal = dfTotal1.select(col("id_no_contrato"),
                               lit("Otros indicadores").alias("nombre_grupo_indicador"),
@@ -28,8 +26,7 @@ def ind_abuso_contratacion(dfPrCon, date_data, df):
                               when(col("cantidad_asignadas") >= 3, lit("Si")).otherwise(lit("No")).alias(
                                   "tipo_alerta_irregularidad"),
                               col("monto_contrato"),
-                              col("window"),
-                              col("fecha_ejecucion")
+                              lit(date_data).alias("fecha_ejecucion")
                               )
 
     return dfFinal
@@ -244,7 +241,7 @@ def parse_arguments():
 
 
 def main():
-    spark = SparkSession.builder.config("spark.streaming.concurrentJobs", "8").appName('master-stream').getOrCreate()
+    spark = SparkSession.builder.appName('master-stream').getOrCreate()
     spark.sql("set spark.sql.streaming.schemaInference=true")
 
     pyspark_args = parse_arguments()
@@ -260,7 +257,7 @@ def main():
                    "s3://test-pgr-raw-zone/t_seii_ejecucioncon_avancerevses"]
 
     date_data = datetime.now(pytz.timezone('America/Bogota')).date().isoformat()
-    data_source = spark.readStream.parquet(f"s3://test-pgr-raw-zone/t_streaming_contracts/{date_data}/")
+    data_source = spark.read.parquet(f"s3://test-pgr-raw-zone/t_streaming_contracts/{date_data}/*")
     print(f"Read parquet s3://test-pgr-raw-zone/t_streaming_contracts/{date_data}/")
     data_frames_origin = get_data_frames(spark, list_source)
 
@@ -275,90 +272,15 @@ def main():
     df9 = ind_inhabilitados_obras_inconclusas(data_frames_origin["t_paco_registro_obras_inconclusa"], date_data, data_source)
     df10 = ind_inhabilitados_resp_fiscal(data_frames_origin["t_paco_responsabilidad_fiscales"], date_data, data_source)
 
-    print("Write indicadores")
-    df1.writeStream \
-        .outputMode("append") \
-        .format(f"json") \
-        .option("checkpointLocation", f"s3://test-pgr-aws-logs/streams_checkpoints/master/ind_abuso_contratacion") \
-        .option("path", f"s3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data}/ind_abuso_contratacion") \
-        .start()
+    dfs = [df3, df4, df5, df6, df8, df9, df10]
+    dfFinal = df1
+    for df in dfs:
+        dfFinal = dfFinal.union(df)
 
-    print("Write indicadores3")
-    df3.writeStream \
-        .outputMode("append") \
-        .format(f"json") \
-        .option("checkpointLocation", f"s3://test-pgr-aws-logs/streams_checkpoints/master/ind_contratos_prov_inactivos") \
-        .option("path", f"s3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data}/ind_contratos_prov_inactivos") \
-        .start()
+    dfFinal.write.mode("overwrite").json(f"s3://test-pgr-curated-zone/t_result_indicadores_stream_final2/fecha_ejecucion={date_data}")
 
-    print("Write indicadores4")
-    df4.writeStream \
-        .outputMode("append") \
-        .format(f"json") \
-        .option("checkpointLocation", f"s3://test-pgr-aws-logs/streams_checkpoints/master/ind_contratos_prov_PEP") \
-        .option("path", f"s3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data}/ind_contratos_prov_PEP") \
-        .start()
-
-    print("Write indicadores5")
-    df5.writeStream \
-        .outputMode("append") \
-        .format(f"json") \
-        .option("checkpointLocation", f"s3://test-pgr-aws-logs/streams_checkpoints/master/ind_contratos_prov_pust_sensibles") \
-        .option("path", f"s3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data}/ind_contratos_prov_pust_sensibles") \
-        .start()
-
-    print("Write indicadores6")
-    df6.writeStream \
-        .outputMode("append") \
-        .format(f"json") \
-        .option("checkpointLocation", f"s3://test-pgr-aws-logs/streams_checkpoints/master/ind_contratistas_contratos_cancel") \
-        .option("path", f"s3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data}/ind_contratistas_contratos_cancel") \
-        .start()
-
-    print("Write indicadores8")
-    df8.writeStream \
-        .outputMode("append") \
-        .format(f"json") \
-        .option("checkpointLocation", f"s3://test-pgr-aws-logs/streams_checkpoints/master/ind_inhabilitados_multas") \
-        .option("path", f"s3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data}/ind_inhabilitados_multas") \
-        .start()
-
-    print("Write indicadores9")
-    df9.writeStream \
-        .outputMode("append") \
-        .format(f"json") \
-        .option("checkpointLocation", f"s3://test-pgr-aws-logs/streams_checkpoints/master/ind_inhabilitados_obras_inconclusas") \
-        .option("path", f"s3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data}/ind_inhabilitados_obras_inconclusas") \
-        .start()
-
-    print("Write indicadores10")
-    df10.writeStream \
-        .outputMode("append") \
-        .format(f"json") \
-        .option("checkpointLocation", f"s3://test-pgr-aws-logs/streams_checkpoints/master/ind_inhabilitados_resp_fiscal") \
-        .option("path", f"s3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data}/ind_inhabilitados_resp_fiscal") \
-        .start()
-
-    print("Execute aws cli")
-    command1 = f"aws s3 sync s3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data}/ind_abuso_contratacion/ s3://test-pgr-curated-zone/t_result_indicadores_stream_final/{date_data}/ --exclude '*' --include '*.json'"
-    command2 = f"aws s3 sync s3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data}/ind_contratistas_contratos_cancel/ s3://test-pgr-curated-zone/t_result_indicadores_stream_final/{date_data}/ --exclude '*' --include '*.json'"
-    command3 = f"aws s3 sync s3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data}/ind_contratos_prov_PEP/ s3://test-pgr-curated-zone/t_result_indicadores_stream_final/{date_data}/ --exclude '*' --include '*.json'"
-    command4 = f"aws s3 sync s3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data}/ind_contratos_prov_inactivos/ s3://test-pgr-curated-zone/t_result_indicadores_stream_final/{date_data}/ --exclude '*' --include '*.json'"
-    command5 = f"aws s3 sync s3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data}/ind_contratos_prov_pust_sensibles/ s3://test-pgr-curated-zone/t_result_indicadores_stream_final/{date_data}/ --exclude '*' --include '*.json'"
-    command6 = f"aws s3 sync s3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data}/ind_inhabilitados_multas/ s3://test-pgr-curated-zone/t_result_indicadores_stream_final/{date_data}/ --exclude '*' --include '*.json'"
-    command7 = f"aws s3 sync s3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data}/ind_inhabilitados_obras_inconclusas/ s3://test-pgr-curated-zone/t_result_indicadores_stream_final/{date_data}/ --exclude '*' --include '*.json'"
-    command8 = f"aws s3 sync s3://test-pgr-curated-zone/t_result_indicadores_stream/{date_data}/ind_inhabilitados_resp_fiscal/ s3://test-pgr-curated-zone/t_result_indicadores_stream_final/{date_data}/ --exclude '*' --include '*.json'"
-    subprocess.run(command1, shell=True)
-    subprocess.run(command2, shell=True)
-    subprocess.run(command3, shell=True)
-    subprocess.run(command4, shell=True)
-    subprocess.run(command5, shell=True)
-    subprocess.run(command6, shell=True)
-    subprocess.run(command7, shell=True)
-    subprocess.run(command8, shell=True)
-        
     deleted_data_results = "delete from t_result_indicadores_stream;"
-    insert_data_results = f"copy t_result_indicadores_stream from 's3://test-pgr-curated-zone/t_result_indicadores_stream_final/{date_data}/' " \
+    insert_data_results = f"copy t_result_indicadores_stream from 's3://test-pgr-curated-zone/t_result_indicadores_stream_final2/{date_data}/' " \
                           f"iam_role 'arn:aws:iam::354824231875:role/AmazonRedshift-indicadores-role' format as json 'auto';"
     
     print("connects db")

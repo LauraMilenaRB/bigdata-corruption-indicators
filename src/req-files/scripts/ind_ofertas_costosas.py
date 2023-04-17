@@ -6,6 +6,8 @@ from pyspark.sql.window import Window
 from pyspark.sql.functions import row_number
 import argparse
 from datetime import date
+from datetime import datetime
+import pytz
 
 
 def get_data_frames(spark, list_source, date_origin):
@@ -20,13 +22,18 @@ def get_data_frames(spark, list_source, date_origin):
 def transform_data(sources, destination_bucket):
     dfOfPPro = sources["t_seii_ofertaproces_procesocompr"]
     dfPrCon = sources["t_seii_procecotrata_compraadjudi"]
-    date_data = date.today()
+    date_data = datetime.now(pytz.timezone('America/Bogota')).date().isoformat()
 
     windowSpec = Window.partitionBy("ofertas.id_proceso_compra").orderBy("ofertas.monto_oferta",
                                                                          "ofertas.fecha_registro_oferta")
+    totalContratos = dfPrCon.dropDuplicates(["id_proceso"]).alias("contratos").join(dfOfPPro.alias("ofertas"),
+                                                                                    col("id_portafolio") == col(
+                                                                                        "id_proceso_compra"),
+                                                                                    "inner").count()
 
-    dfRespuesta = dfPrCon.alias("contratos").join(dfOfPPro.alias("ofertas"),
-                                                  col("id_portafolio") == col("id_proceso_compra"), "inner") \
+    dfRespuesta = dfPrCon.dropDuplicates(["id_proceso"]).alias("contratos").join(dfOfPPro.alias("ofertas"),
+                                                                                 col("id_portafolio") == col(
+                                                                                     "id_proceso_compra"), "inner") \
         .withColumn("tipo_rango_oferta", row_number().over(windowSpec)) \
         .select(col("contratos.nombre_entidad"), col("contratos.id_nit_entidad"), col("contratos.id_proceso"),
                 col("contratos.monto_precio_base"), col("contratos.monto_total_adjudicado"),
@@ -44,15 +51,17 @@ def transform_data(sources, destination_bucket):
                          lit(0)).otherwise(1)) \
         .withColumn("monto_diferencia_valor",
                     when(col("monto_diferencia_valor") < 0, lit(0)).otherwise(col("monto_diferencia_valor"))) \
-        .filter(col("tipo_rango_oferta").isin("1"))
+        .filter(col("tipo_rango_oferta").isin("1")) \
+        .filter(col("monto_diferencia_valor") > 0) \
+        .filter(col("tipo_es_mismo_proveedor").isin(1))
 
     df_result = dfRespuesta.agg(
         lit("otros indicadores").cast("string").alias("nombre_grupo_indicador"),
         lit("ofertas Costosas").cast("string").alias("nombre_indicador"),
         sum(col("tipo_es_mismo_proveedor")).cast("long").alias("cantidad_irregularidades"),
         sum(col("tipo_es_mismo_proveedor")).cast("long").alias("cantidad_contratos_irregularidades"),
-        sum("monto_diferencia_valor").cast("decimal(30,3)").alias("monto_total_irregularidades"),
-        count("*").cast("long").alias("cantidad_contratos"),
+        sum("monto_precio_base").cast("decimal(30,3)").alias("monto_total_irregularidades"),
+        lit(totalContratos).cast("long").alias("cantidad_contratos_totales"),
         lit(date_data).cast("date").alias("fecha_ejecucion")
     )
 

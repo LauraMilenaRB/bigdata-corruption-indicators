@@ -2,8 +2,8 @@ import logging
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
-from pyspark.sql.window import Window
-from pyspark.sql.functions import row_number
+from datetime import datetime
+import pytz
 import argparse
 from datetime import date
 
@@ -20,7 +20,7 @@ def get_data_frames(spark, list_source, date_origin):
 def transform_data(sources, destination_bucket):
     dfEjeCon = sources["t_seii_ejecucioncon_avancerevses"]
     dfPrCon = sources["t_seii_procecotrata_compraadjudi"]
-    date_data = date.today()
+    date_data = datetime.now(pytz.timezone('America/Bogota')).date().isoformat()
 
     df32PP = dfEjeCon.filter(
         ~col("cant_recibida").isNull() & ~col("cant_recibida").isin("No Definido") & ~col("cant_recibir").isin(
@@ -31,18 +31,18 @@ def transform_data(sources, destination_bucket):
         .withColumn("id_contrato_final", substring("id_contrato", 12, 8))
 
     df32C = dfPrCon.select(substring("id_proceso", 9, 8).alias("id_contrato_final2"), col("id_proceso"),
-                           col("id_nit_proveedor"), col("monto_total_adjudicado"), col("nombre_contrato")) \
+                           col("id_nit_proveedor"), col("monto_precio_base"), col("nombre_contrato")) \
         .filter(~col("id_nit_proveedor").isin("No Definido", "No Adjudicado")).distinct()
 
-    dfFinal = df32PP.join(df32C, col("id_contrato_final") == col("id_contrato_final2"), "inner")
+    df32 = df32PP.join(df32C, col("id_contrato_final") == col("id_contrato_final2"), "inner")
 
-    df_result = dfFinal.agg(
+    df_result = df32.agg(
         lit("indicadores incumplimiento").cast("string").alias("nombre_grupo_indicador"),
         lit("contratos con incumplimiento de entregas").cast("string").alias("nombre_indicador"),
         sum(col("count")).cast("long").alias("cantidad_irregularidades"),
         countDistinct(col("id_contrato_final2")).cast("long").alias("cantidad_contratos_irregularidades"),
-        sumDistinct("monto_total_adjudicado").cast("decimal(30,3)").alias("monto_total_irregularidades"),
-        countDistinct(col("id_contrato_final2")).cast("long").alias("cantidad_contratos"),
+        sumDistinct("monto_precio_base").cast("decimal(30,3)").alias("monto_total_irregularidades"),
+        lit(dfPrCon.count()).cast("long").alias("cantidad_contratos_totales"),
         lit(date_data).cast("date").alias("fecha_ejecucion")
     )
 

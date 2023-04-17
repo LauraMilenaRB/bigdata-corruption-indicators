@@ -31,7 +31,7 @@ def get_data(id_contract):
                                                     'MUNICIPIOS ASOCIADOS PARA EL DESARROLLO DEL NORTE DE ANTIOQUIA MADENA',
                                                     'ABONDANO GUZMAN ESPERANZA']
                                                    ),
-        'monto_contrato': round(random.random() * 100, 2)
+        'monto_contrato': round(random.random() * 1000000000, 2)
     }
 
 

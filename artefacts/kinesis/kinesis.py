@@ -176,7 +176,7 @@ def create_delivery_stream_kinesis(session_client, kinesis_delivery_stream_name,
                 'ErrorOutputPrefix': 'log-error-',
                 'BufferingHints': {
                     'SizeInMBs': 128,
-                    'IntervalInSeconds': 70
+                    'IntervalInSeconds': 100
                 },
                 'CompressionFormat': 'HADOOP_SNAPPY',
                 'CloudWatchLoggingOptions': {

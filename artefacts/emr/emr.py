@@ -93,14 +93,14 @@ def run_job_flow_emr(session_client, emr_stream_name, concurrent_step, s3_logs_o
                         'Name': 'MASTER',
                         'Market': 'ON_DEMAND',
                         'InstanceRole': 'MASTER',
-                        'InstanceType': 'm5.xlarge',
+                        'InstanceType': 'm6g.xlarge',
                         'InstanceCount': 1
                     },
                     {
                         'Name': 'Core node',
                         'Market': 'ON_DEMAND',
                         'InstanceRole': 'CORE',
-                        'InstanceType': 'm5.xlarge',
+                        'InstanceType': 'm6g.xlarge',
                         'InstanceCount': 2
                     }
                 ],

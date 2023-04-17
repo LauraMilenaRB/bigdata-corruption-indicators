@@ -1,9 +1,10 @@
 import logging
 
+from datetime import datetime
+import pytz
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 import argparse
-from datetime import date
 
 
 def get_data_frames(spark, list_source, date_origin):
@@ -17,13 +18,15 @@ def get_data_frames(spark, list_source, date_origin):
 
 def transform_data(sources, destination_bucket):
     dfPrCon = sources["t_seii_procecotrata_compraadjudi"]
-    date_data = date.today()
+    date_data = datetime.now(pytz.timezone('America/Bogota')).date().isoformat()
 
-    dfAbusoContratacion = dfPrCon.select(col("id_nit_entidad"),col("monto_total_adjudicado"), col("id_nit_proveedor")) \
+    dfAbusoContratacion = dfPrCon.dropDuplicates(["id_proceso"]).select(col("id_nit_entidad"), col("monto_precio_base"),
+                                                                        col("id_nit_proveedor"),
+                                                                        year(col("fecha_publicacion")).alias(
+                                                                            "anio_fecha_publicacion")) \
         .filter(~col("id_nit_proveedor").isin("No Definido", "No Adjudicado")) \
-        .groupBy(col("id_nit_entidad"), col("id_nit_proveedor"))\
-        .agg(count("*").alias("cantidad_asignadas"),
-             sum("monto_total_adjudicado").alias("monto_suma_total_adjudicado")) \
+        .groupBy(col("id_nit_entidad"), col("id_nit_proveedor"), col("anio_fecha_publicacion")).agg(
+        count("*").alias("cantidad_asignadas"), sum("monto_precio_base").alias("monto_suma_total_adjudicado")) \
         .orderBy(col("cantidad_asignadas").desc())
 
 
