@@ -110,6 +110,8 @@ def create_streams_flow():
 
     emr.run_job_flow_emr(session, emr_stream_name, concurrent_steps, s3_logs_output, subnets_id[0],
                          endpoint, password_bd_redshift, user_bd_redshift, name_bd_redshift)
+    #id_cluster = emr.get_id_job_flow_emr(session, emr_stream_name)
+    #emr.add_job_flow_steps(session, id_cluster, endpoint, password_bd_redshift, user_bd_redshift, name_bd_redshift)
 
 
 def create_service_redshift():

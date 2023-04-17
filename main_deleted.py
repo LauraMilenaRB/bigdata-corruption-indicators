@@ -54,7 +54,6 @@ def deleted_airflow():
 
     airflow.deleted_mwaa_evn(evn_name, session)
     airflow.deleted_rol_execution_evn(session, evn_name)
-    emr.deleted_roles_default_emr(session)
 
 
 def deleted_kinesis_stream():
@@ -75,10 +74,20 @@ def deleted_redshift():
     redshift.deleted_cluster_redshift(session, redshift_name_cluster)
 
 
+def deleted_job_emr():
+    print("**********************************************************\n"
+          "*                     Amazon EMR                         *\n"
+          "**********************************************************")
+    id_cluster = emr.get_id_job_flow_emr(session, emr_stream_name)
+    emr.deleted_job_flow_emr(session, id_cluster)
+    emr.deleted_roles_default_emr(session)
+
+
 if __name__ == '__main__':
     deleted_buckets()
     deleted_vpc()
     deleted_airflow()
     deleted_kinesis_stream()
     deleted_redshift()
+    deleted_job_emr()
 

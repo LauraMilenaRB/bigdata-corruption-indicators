@@ -63,6 +63,77 @@ def deleted_roles_default_emr(session_client):
         return True
 
 
+def deleted_job_flow_emr(session_client, id_cluster):
+    """Create a role execution environment for MWAA
+
+    If a region is not specified, the bucket is created in the S3 default
+    region (us-east-1).
+
+    :return: True if bucket created, else False
+    """
+    try:
+        emr_client = session_client.client('emr')
+        emr_client.terminate_job_flows(JobFlowIds=[id_cluster])
+
+    except ClientError as e:
+        logging.error(e)
+        return False
+    print(f"Deleting emr job {id_cluster}...")
+    time.sleep(20)
+    print(f"Deleted emr job {id_cluster} success")
+    return True
+
+
+def get_id_job_flow_emr(session_client, cluster_name):
+    """Create a role execution environment for MWAA
+
+    If a region is not specified, the bucket is created in the S3 default
+    region (us-east-1).
+
+    :return: True if bucket created, else False
+    """
+    try:
+        clusters = session_client.list_clusters()
+        your_cluster = [i for i in clusters['Clusters'] if i['Name'] == cluster_name][0]
+        response = session_client.describe_cluster(ClusterId=your_cluster['Id'])
+    except ClientError as e:
+        logging.error(e)
+        return False
+    return response
+
+
+def add_job_flow_steps(session_client, id_cluster, endpoint, password, user, database):
+    """Create a role execution environment for MWAA
+
+    If a region is not specified, the bucket is created in the S3 default
+    region (us-east-1).
+
+    :return: True if bucket created, else False
+    """
+    try:
+        client = session_client.client('emr')
+        response = client.add_job_flow_steps(
+            JobFlowId=id_cluster,
+            Steps=[
+                {
+                    'Name': 'spark_stream_ind_mini_batch',
+                    'ActionOnFailure': 'CONTINUE',
+                    'HadoopJarStep': {
+                        'Jar': 'command-runner.jar',
+                        'Args': ['spark-submit', '--master', 'yarn',
+                                 '--deploy-mode', 'client', f's3://test-pgr-req-files/scripts/spark_stream_ind_mini_batch.py',
+                                 '--endpoint', endpoint, '--pwd', password, '--user', user, '--db', database, '--id_cluster', id_cluster
+                                 ]
+                    }
+                }
+            ]
+        )
+    except ClientError as e:
+        logging.error(e)
+        return False
+    return response
+
+
 def run_job_flow_emr(session_client, emr_stream_name, concurrent_step, s3_logs_output, private_subnet_id,
                      endpoint, password, user, database):
     """Create a role execution environment for MWAA
