@@ -1,19 +1,21 @@
+"""
+Autores: Laura Milena Ramos Bermúdez y Juan Pablo Arevalo Merchán
+laura.ramos-b@mail.escuelaing.edu.co
+juan.arevalo-m@mail.escuelaing.edu.co
+"""
+
 import logging
 import time
-
 from botocore.exceptions import ClientError
 
 
 def create_bucket(bucket_name, region=None, session_client=None):
-    """Create an S3 bucket in a specified region
+    """Creación del bucket S3
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :param session_client:
-    :param bucket_name: Bucket to create
-    :param region: String region to create bucket in, e.g., 'us-west-2'
-    :return: True if bucket created, else False
+    @param session_client: Sesión AWS
+    @param bucket_name: Nombre del bucket a crear
+    @param region: Region donde se creara el bucket
+    @return: True si el bucket se crea, si no False
     """
 
     try:
@@ -23,40 +25,43 @@ def create_bucket(bucket_name, region=None, session_client=None):
         else:
             location = {'LocationConstraint': region}
             s3_client.create_bucket(Bucket=bucket_name, CreateBucketConfiguration=location)
-        print("Creating...")
-        time.sleep(5)
-        print("Create susses bucket", bucket_name)
+
     except ClientError as e:
         logging.error(e)
         return False
-    return True
+    else:
+        print(f"Creando bucket {bucket_name}...")
+        time.sleep(5)
+        print(f"Creado bucket {bucket_name} con éxito")
+        return True
 
 
 def upload_file(file_name, bucket, object_name, session_client):
-    """Upload a file to an S3 bucket
+    """Subir un archivo a un depósito S3
 
-    :param session_client:
-    :param file_name: File to upload
-    :param bucket: Bucket to upload to
-    :param object_name: S3 object name. If not specified then file_name is used
-    :return: True if file was uploaded, else False
+    @param session_client: Sesión AWS
+    @param bucket: Nombre del bucket actualizar
+    @param file_name: Archivo a subir
+    @param object_name: Nombre del objeto S3. Si no se especifica, se utiliza file_name
+    @return: True si el archivo en el bucket se actualiza, si no False
     """
     try:
         s3_client = session_client.client('s3')
         response = s3_client.upload_file(file_name, bucket, object_name)
-        print("Upload susses dags files", f"{file_name}/{object_name}/{file_name}")
     except ClientError as e:
         logging.error(e)
         return False
-    return True
+    else:
+        print(f"Archivos dags {file_name}/{object_name}/{file_name} subido con éxito")
+        return True
 
 
 def put_public_access_block(bucket, session_client):
-    """Put block public access to bucket S3
+    """Poner bloque de acceso público al depósito S3
 
-    :param session_client:
-    :param bucket: Bucket to upload to
-    :return: True if file was uploaded, else False
+    @param session_client: Sesión AWS
+    @param bucket: Nombre del bucket a crear
+    @return: True si al bucket se le da acceso, si no False
     """
     try:
         s3_client = session_client.client('s3')
@@ -77,19 +82,21 @@ def put_public_access_block(bucket, session_client):
 
 
 def deleted_buckets(session_client, bucket_name):
-    """Put block public access to bucket S3
+    """Eliminación de buckets
 
-    :param bucket_name:
-    :param session_client:
-    :return: True if file was uploaded, else False
+    @param session_client: Sesión AWS
+    @param bucket_name: Nombre del bucket a crear
+    @return: True si el bucket se elimina, si no False
     """
     try:
         s3_client = session_client.client('s3')
         s3_client.delete_bucket(
             Bucket=bucket_name
         )
-        print("Deleted susses bucket", bucket_name)
+
     except ClientError as e:
         logging.error(e)
         return False
+    else:
+        print("Eliminación del bucket {bucket_name} con éxito")
     return True

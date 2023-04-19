@@ -1,3 +1,9 @@
+"""
+Autores: Laura Milena Ramos Bermúdez y Juan Pablo Arevalo Merchán
+laura.ramos-b@mail.escuelaing.edu.co
+juan.arevalo-m@mail.escuelaing.edu.co
+"""
+
 import logging
 import time
 from botocore.exceptions import ClientError
@@ -5,10 +11,11 @@ import iam
 
 
 def create_stream_kinesis(session_client, kinesis_stream_name):
-    """
-    :param session_client:
-    :param kinesis_stream_name:
-    :return: True if bucket created, else False
+    """Creación stream kinesis
+
+    @param session_client:
+    @param kinesis_stream_name:
+    @return: True si ..., si no False
     """
     try:
         client = session_client.client("kinesis")
@@ -21,21 +28,19 @@ def create_stream_kinesis(session_client, kinesis_stream_name):
     except ClientError as e:
         logging.error(e)
         return False
-    print("Creating stream kinesis...")
-    time.sleep(5)
-    print("Creating stream kinesis success")
-    return True
+    else:
+        print(f"Creando stream kinesis {kinesis_stream_name}...")
+        time.sleep(10)
+        print(f"Creado stream kinesis {kinesis_stream_name} con éxito")
+        return True
 
 
 def delete_stream_kinesis(session_client, kinesis_stream_name):
     """Create an S3 bucket in a specified region
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :param kinesis_stream_name:
-    :param session_client:
-    :return: True if bucket created, else False
+    @param kinesis_stream_name:
+    @param session_client:
+    @return: True si ..., si no False
     """
     try:
         client = session_client.client("kinesis")
@@ -47,21 +52,19 @@ def delete_stream_kinesis(session_client, kinesis_stream_name):
     except ClientError as e:
         logging.error(e)
         return False
-    print("Deleted stream kinesis...")
-    time.sleep(5)
-    print("Deleted stream kinesis success")
-    return True
+    else:
+        print(f"Eliminando stream kinesis {kinesis_stream_name}...")
+        time.sleep(5)
+        print(f"Eliminado stream kinesis {kinesis_stream_name} con éxito")
+        return True
 
 
 def delete_delivery_stream_kinesis(session_client, kinesis_delivery_stream_name):
-    """Create an S3 bucket in a specified region
+    """Eliminación delivery stream kinesis
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :param kinesis_delivery_stream_name:
-    :param session_client:
-    :return: True if bucket created, else False
+    @param kinesis_delivery_stream_name:
+    @param session_client:
+    @return: True si ..., si no False
     """
     try:
         client = session_client.client("firehose")
@@ -72,26 +75,24 @@ def delete_delivery_stream_kinesis(session_client, kinesis_delivery_stream_name)
     except ClientError as e:
         logging.error(e)
         return False
-    print("Deleted delivery stream kinesis...")
-    time.sleep(60)
-    print("Deleted delivery stream kinesis success")
-    return True
+    else:
+        print(f"Eliminando delivery stream kinesis {kinesis_delivery_stream_name}...")
+        time.sleep(60)
+        print(f"Eliminado delivery stream kinesis {kinesis_delivery_stream_name} con éxito")
+        return True
 
 
 def create_role_kinesis(session_client, kinesis_delivery_stream_name):
-    """Create an S3 bucket in a specified region
+    """Creación rol para kinesis
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :param kinesis_delivery_stream_name:
-    :param session_client:
-    :return: True if bucket created, else False
+    @param kinesis_delivery_stream_name:
+    @param session_client:
+    @return: True si ..., si no False
     """
     try:
         identity = session_client.client('sts').get_caller_identity()
 
-        file = open("artefacts/kinesis/stream_kinesis_policy_doc.json", "r")
+        file = open("aws-services/kinesis/stream_kinesis_policy_doc.json", "r")
         ct_file = file.read() \
             .replace("{your-account-id}", identity.get("Account")) \
             .replace("{your-region}", session_client.region_name)
@@ -101,28 +102,26 @@ def create_role_kinesis(session_client, kinesis_delivery_stream_name):
 
         iam.create_policy(session_client, policy_name, ct_file)
         iam.create_role(session_client, role_name,
-                        open("artefacts/kinesis/assume_stream_kinesis_policy_doc.json").read())
+                        open("aws-services/kinesis/assume_stream_kinesis_policy_doc.json").read())
         iam.attach_role_policy(session_client, role_name,
                                f'arn:aws:iam::{identity.get("Account")}:policy/{policy_name}')
 
     except ClientError as e:
         logging.error(e)
         return False
-    print("Create role delivery stream kinesis...")
-    time.sleep(5)
-    print("Create role delivery stream kinesis success")
-    return True
+    else:
+        print(f"Creando rol delivery stream kinesis {kinesis_delivery_stream_name}...")
+        time.sleep(10)
+        print(f"Creado role delivery stream kinesis {kinesis_delivery_stream_name} con éxito")
+        return True
 
 
 def deleted_role_kinesis(session_client, kinesis_delivery_stream_name):
-    """Create an S3 bucket in a specified region
+    """Eliminación rol para kinesis
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :param kinesis_delivery_stream_name:
-    :param session_client:
-    :return: True if bucket created, else False
+    @param kinesis_delivery_stream_name:
+    @param session_client:
+    @return: True si ..., si no False
     """
     try:
         policy_name = f'{kinesis_delivery_stream_name}-policy'
@@ -136,26 +135,24 @@ def deleted_role_kinesis(session_client, kinesis_delivery_stream_name):
     except ClientError as e:
         logging.error(e)
         return False
-    print("Deleting role delivery stream kinesis...")
-    time.sleep(5)
-    print("Deleted role delivery stream kinesis success")
-    return True
+    else:
+        print("Eliminando rol para delivery stream kinesis...")
+        time.sleep(5)
+        print("Eliminado role delivery stream kinesis con éxito")
+        return True
 
 
 def create_delivery_stream_kinesis(session_client, kinesis_delivery_stream_name, kinesis_stream_name,
                                    s3_output_destination, key_staging_bucket, column_partition_key):
-    """Create an S3 bucket in a specified region
+    """Creación del servicio delivery stream kinesis
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :param session_client:
-    :param kinesis_delivery_stream_name:
-    :param kinesis_stream_name:
-    :param s3_output_destination:
-    :param key_staging_bucket:
-    :param column_partition_key:
-    :return: True if bucket created, else False
+    @param session_client:
+    @param kinesis_delivery_stream_name:
+    @param kinesis_stream_name:
+    @param s3_output_destination:
+    @param key_staging_bucket:
+    @param column_partition_key:
+    @return: True si ..., si no False
     """
     try:
         identity = session_client.client('sts').get_caller_identity()
@@ -211,7 +208,8 @@ def create_delivery_stream_kinesis(session_client, kinesis_delivery_stream_name,
     except ClientError as e:
         logging.error(e)
         return False
-    print("Creating delivery stream kinesis...")
-    time.sleep(60)
-    print("Creating delivery stream kinesis success")
-    return True
+    else:
+        print("Creando delivery stream kinesis...")
+        time.sleep(60)
+        print("Creado delivery stream kinesis con éxito")
+        return True

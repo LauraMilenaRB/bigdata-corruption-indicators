@@ -112,23 +112,25 @@ Para poder desplegar la arquitectura propuesta se desarrollaron los componentes 
       5. ***DDL_result_batch***: Sentencia SQL del DDL de la tabla de resultados batch.
       6. ***DDL_result_stream***: Sentencia SQL del DDL de la tabla de resultados streaming.
 
-6. Ejecute el Main principal y espere a que termine, este tiene las funciones de creación de S3 Buckets, Apache airflow, VPCs, Kinesis, Amazon EMR y Amazon Redshift.
-   <br>![img_4.png](img/img_4.png)<br>
+6. Ejecute el Main principal y espere a que termine,
+   1. Este script de python tiene las funciones de creación de S3 Buckets, Apache airflow, VPCs, Kinesis, Amazon EMR y Amazon Redshift.
+      <br>![img_4.png](img/img_4.png)<br>
+   2. Cuando lo ejecute verá en la terminal algo como esto: 
+      <br>![img.png](img/img_2.png)<br>
 
 7. Verifique la creación de los buckets, carpetas y carga de archivos correspondientes en la consola de servicios de Amazon S3, este proceso puede demorar un poco si se suben archivos locales.
    <br>![img_7.png](img/img_7.png)<br>
    <br>![img_8.png](img/img_8.png)<br>
+8. Verifique la creación de la VPCs. Diríjase a CloudFormation en la consola de servicios de Amazon.
+   <br>![img_9.png](img/img_9.png)<br>
 
-8. Verifique la creación del cluster de Amazon Redshift, para esto diríjase en la consola de servicios y busque Amazon Redshift. Luego de esto debe ver el cluster ***'Available'***.
+9. Verifique la creación del cluster de Amazon Redshift, para esto diríjase en la consola de servicios y busque Amazon Redshift. Luego de esto debe ver el cluster ***'Available'***.
    <br>![img_44.png](img/img_44.png)<br>
    1. De clic en el cluster, luego en *'Datos de consulta'* > *Consulta en el editor de consultas v2*
    <br>![img_45.png](img/img_45.png)<br>
    2. Verifiqué que las tablas de resultados que haya definido en el conf se hayan creado correctamente.
    <br>![img_46.png](img/img_46.png)<br>
-   
-9. Verifique la creación de la VPCs. Diríjase a CloudFormation en la consola de servicios de Amazon.
-   <br>![img_9.png](img/img_9.png)<br>
-
+   3. 
 10. Verifique la creación de Amazon MWAAA (Apache Airflow).
     1. Primero, verifique la creación de roles y políticas asociadas al servicio.
     <br>![img_10.png](img/img_10.png)<br>

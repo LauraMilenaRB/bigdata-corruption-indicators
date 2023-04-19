@@ -45,6 +45,7 @@ def deleted_vpc():
           "*                        VPCs                            *\n"
           "**********************************************************")
     vpc.deleted_stack_template_vpc(session, vpc_name)
+    vpc.deleted_default_vpc(session)
 
 
 def deleted_airflow():
@@ -84,11 +85,10 @@ def deleted_job_emr():
 
 
 if __name__ == '__main__':
-
-    deleted_buckets()
-    deleted_vpc()
+    #deleted_buckets()
+    deleted_redshift()
     deleted_airflow()
     deleted_kinesis_stream()
-    deleted_redshift()
     deleted_job_emr()
+    deleted_vpc()
 

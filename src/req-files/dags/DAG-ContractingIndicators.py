@@ -33,10 +33,10 @@ def download_dataset(**context):
                 bucket.put_object(Bucket=bucket_name,
                                   Key=f'{key_source}/{key_source}_{id_date_load_data}.{data_type_origin}',
                                   Body=origin_data.content)
-            if s3_hook.check_for_key(bucket_name=bucket_name, key=f'{key_source}/{id_date_load_data}_SUCCESS'):
-                s3_hook.delete_objects(bucket=bucket_name, keys=f'{key_source}/{id_date_load_data}_SUCCESS')
-            s3_hook.load_string(bucket_name=bucket_name, key=f'{key_source}/{id_date_load_data}_SUCCESS',
-                                string_data="SUCCESS")
+            if s3_hook.check_for_key(bucket_name=bucket_name, key=f'{key_source}/{id_date_load_data}_con éxito'):
+                s3_hook.delete_objects(bucket=bucket_name, keys=f'{key_source}/{id_date_load_data}_con éxito')
+            s3_hook.load_string(bucket_name=bucket_name, key=f'{key_source}/{id_date_load_data}_con éxito',
+                                string_data="con éxito")
 
         return True
     else:
@@ -92,10 +92,9 @@ def steps_ind():
 def create_query_redshift(**context):
     """Create a role execution environment for MWAA
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
+    
 
-    :return: True if bucket created, else False
+    @return: True si ..., si no False
     """
     try:
         query = context['query_arg']
@@ -142,7 +141,7 @@ with DAG(dag_id='mwaa_pipeline_contratacion_publica', schedule_interval="0 0 * *
             task_id=f'check_staging_{key}',
             aws_conn_id='aws_default',
             bucket_name=bucket_staging_name_arg,
-            bucket_key=f'{key}/{id_date_load_data}_SUCCESS'
+            bucket_key=f'{key}/{id_date_load_data}_con éxito'
         )
         check_download_bucket.append(check_staging_s3_bucket)
 

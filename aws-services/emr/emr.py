@@ -1,23 +1,24 @@
+"""
+Autores: Laura Milena Ramos Bermúdez y Juan Pablo Arevalo Merchán
+laura.ramos-b@mail.escuelaing.edu.co
+juan.arevalo-m@mail.escuelaing.edu.co
+"""
+
 import logging
 import time
-
 from botocore.exceptions import ClientError
-
 import iam
-
 import subprocess
 
 
 def create_roles_default_emr(session_client):
-    """Create a role execution environment for MWAA
+    """Creación de roles por default de Amazon EMR
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :return: True if bucket created, else False
+    @param session_client: Sesión AWS
+    @return: True si, else False
     """
     try:
-        file = open("artefacts/emr/EMR_policy_AddJobStep.json", "r")
+        file = open("aws-services/emr/EMR_policy_AddJobStep.json", "r")
         ct_file = file.read()
         file.close()
         identity = session_client.client('sts').get_caller_identity()
@@ -32,20 +33,18 @@ def create_roles_default_emr(session_client):
     except ClientError as e:
         logging.error(e)
         return False
-    print("Creating role default emr...")
-    time.sleep(20)
-    print("Created role default emr success")
-    return True
+    else:
+        print("Creando los roles default de Amazon EMR...")
+        time.sleep(20)
+        print("Creado los roles default de Amazon EMR con éxito")
+        return True
 
 
 def deleted_roles_default_emr(session_client):
-    """Create a role execution environment for MWAA
+    """Creación de los roles por default de Amazon EMR
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :param session_client:
-    :return: True if bucket created, else False
+    @param session_client: Sesión AWS
+    @return: True si, si no False
     """
     try:
         iam.detach_role_policy_aws(session_client, f'service-role/AmazonElasticMapReduceRole', 'EMR_DefaultRole')
@@ -67,56 +66,67 @@ def deleted_roles_default_emr(session_client):
         logging.error(e)
         return False
     else:
-        print("Deleted role default erm")
+        print("Eliminados los roles por default de Amazon EMR con éxito")
         return True
 
 
 def deleted_job_flow_emr(session_client, id_cluster):
-    """Create a role execution environment for MWAA
+    """Eliminación del servicio Amazon EMR
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
+    @param session_client: Sesión AWS
+    @param id_cluster: object
+    @return: True si ..., si no False
 
-    :return: True if bucket created, else False
     """
     try:
         emr_client = session_client.client('emr')
-        emr_client.terminate_job_flows(JobFlowIds=[id_cluster])
+        if id_cluster != 0:
+            emr_client.terminate_job_flows(JobFlowIds=[id_cluster])
 
     except ClientError as e:
         logging.error(e)
         return False
-    print(f"Deleting emr job {id_cluster}...")
-    time.sleep(20)
-    print(f"Deleted emr job {id_cluster} success")
-    return True
+    else:
+        print(f"Eliminando servicio Amazon EMR {id_cluster}...")
+        time.sleep(20)
+        print(f"Eliminado servicio Amazon EMR {id_cluster} con éxito")
+        return True
 
 
 def get_id_job_flow_emr(session_client, cluster_name):
-    """Create a role execution environment for MWAA
-
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :return: True if bucket created, else False
+    """Obtener id del servicio Amazon EMR
+    
+    @param session_client: Sesión AWS
+    @param cluster_name:
+    @return: True si ..., si no False
     """
     try:
-        clusters = session_client.list_clusters()
+        emr = session_client.client('emr')
+        clusters = emr.list_clusters()
         your_cluster = [i for i in clusters['Clusters'] if i['Name'] == cluster_name][0]
-        response = session_client.describe_cluster(ClusterId=your_cluster['Id'])
+        cluster = emr.describe_cluster(ClusterId=your_cluster['Id'])['Cluster']
+        response = 0
+        if cluster['Status']['State'] != 'TERMINATED':
+            response = cluster['Id']
+
     except ClientError as e:
         logging.error(e)
         return False
-    return response
+    else:
+        print(f"Obtención id {response} con éxito")
+        return response
 
 
 def add_job_flow_steps(session_client, id_cluster, endpoint, password, user, database):
-    """Create a role execution environment for MWAA
+    """Agregar steps al servivio de Amazon EMR
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :return: True if bucket created, else False
+    @param session_client: Sesión AWS
+    @param  database:
+    @param  user:
+    @param  password:
+    @param  endpoint:
+    @param  id_cluster:
+    @return: True si el step se agrega, si no False
     """
     try:
         client = session_client.client('emr')
@@ -139,25 +149,20 @@ def add_job_flow_steps(session_client, id_cluster, endpoint, password, user, dat
     except ClientError as e:
         logging.error(e)
         return False
-    return response
+    else:
+        print("Step agregado con éxito")
+        return response
 
 
 def run_job_flow_emr(session_client, emr_stream_name, concurrent_step, s3_logs_output, private_subnet_id):
-    """Create a role execution environment for MWAA
+    """Ejecución del servicio Amazon EMR
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :param emr_stream_name:
-    :param session_client:
-    :param concurrent_step:
-    :param s3_logs_output:
-    :param private_subnet_id:
-    :param endpoint:
-    :param password:
-    :param user:
-    :param database:
-    :return: True if bucket created, else False
+    @param session_client: Sesión AWS
+    @param emr_stream_name:
+    @param concurrent_step:
+    @param s3_logs_output:
+    @param private_subnet_id:
+    @return: True si ..., si no False
     """
     try:
         client = session_client.client('emr')
@@ -215,5 +220,5 @@ def run_job_flow_emr(session_client, emr_stream_name, concurrent_step, s3_logs_o
         return False
     else:
         time.sleep(20)
-        print("Run EMR job flow")
+        print("Ejecutado el servicio Amazon EMR con éxito")
         return True

@@ -138,7 +138,7 @@ def create_tables_redshift():
 
 
 if __name__ == '__main__':
-    create_update_buckets()
+    #create_update_buckets()
     create_service_redshift()
     create_vpc_subnets()
     create_apache_airflow()

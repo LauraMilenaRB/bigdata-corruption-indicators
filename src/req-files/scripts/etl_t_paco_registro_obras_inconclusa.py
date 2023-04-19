@@ -101,7 +101,7 @@ def transform_data(spark, key, date_origin, source_bucket, destination_bucket):
         .withColumn("id_nit_entidad_1", regexp_replace(col("id_nit_entidad_1"),"[A-Z_a-z\/.,*\\t� -]",""))\
 
     data_transform.write.mode('overwrite').partitionBy("fecha_corte_datos").parquet(f"s3://{destination_bucket}/{key}")
-    logging.info(f"Success write data frame {key} in {destination_bucket}")
+    logging.info(f"con éxito write data frame {key} in {destination_bucket}")
 
 
 def parse_arguments():

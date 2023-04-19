@@ -63,7 +63,7 @@ def transform_data(spark, key, date_origin, source_bucket, destination_bucket):
                     when(year("fecha_cancelacion") < 1959, lit(None)).otherwise(col("fecha_cancelacion")))
 
     data_transform.write.mode('overwrite').partitionBy("fecha_corte_datos", "tipo_estado_matricula").parquet(f"s3://{destination_bucket}/{key}")
-    logging.info(f"Success write data frame {key} in {destination_bucket}")
+    logging.info(f"con éxito write data frame {key} in {destination_bucket}")
 
 
 def parse_arguments():

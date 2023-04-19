@@ -29,7 +29,7 @@ def transform_data(spark, key, date_origin, source_bucket, destination_bucket):
                                                lit(None)).otherwise(col("fecha_entrega_real")))
 
     data_transform.write.mode('overwrite').partitionBy("fecha_corte_datos", "tipo_ejecucion").parquet(f"s3://{destination_bucket}/{key}")
-    logging.info(f"Success write data frame {key} in {destination_bucket}")
+    logging.info(f"con éxito write data frame {key} in {destination_bucket}")
 
 
 def parse_arguments():

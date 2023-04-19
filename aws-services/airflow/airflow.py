@@ -1,26 +1,27 @@
+"""
+Autores: Laura Milena Ramos Bermúdez y Juan Pablo Arevalo Merchán
+laura.ramos-b@mail.escuelaing.edu.co
+juan.arevalo-m@mail.escuelaing.edu.co
+"""
+
 import logging
 import time
-
 from botocore.exceptions import ClientError
-
 import iam
 
 
 def create_rol_execution_evn(session_client, bucked_dags_name, evn_name):
-    """Create a role execution environment for MWAA
+    """Creación del rol del entorno de ejecución para Amazon MWAA
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :param evn_name:
-    :param bucked_dags_name:
-    :param session_client:
-    :return: True if bucket created, else False
+    @param evn_name: Nombre del entorno del servicio MWAA
+    @param session_client: Sesión AWS
+    @param bucked_dags_name: Nombre del bucket donde está el DAG
+    @return: True si el rol del entorno de ejecución se crea, si no False
     """
     try:
         identity = session_client.client('sts').get_caller_identity()
 
-        file = open("artefacts/airflow/executionevn_policy_doc.json", "r")
+        file = open("aws-services/airflow/executionevn_policy_doc.json", "r")
         ct_file = file.read() \
             .replace("{your-s3-bucket-name}", bucked_dags_name) \
             .replace("{your-environment-name}", evn_name) \
@@ -32,7 +33,7 @@ def create_rol_execution_evn(session_client, bucked_dags_name, evn_name):
 
         iam.create_policy(session_client, policy_name, ct_file)
         iam.create_role(session_client, role_name,
-                        open("artefacts/airflow/executionevn_assume_policy_doc.json").read())
+                        open("aws-services/airflow/executionevn_assume_policy_doc.json").read())
         iam.attach_role_policy(session_client, role_name,
                                f'arn:aws:iam::{identity.get("Account")}:policy/{policy_name}')
         iam.attach_role_policy(session_client, role_name, 'arn:aws:iam::aws:policy/AmazonS3FullAccess')
@@ -42,19 +43,16 @@ def create_rol_execution_evn(session_client, bucked_dags_name, evn_name):
         return False
     else:
         time.sleep(20)
-        print(f"Create a role execution environment for MWAA {evn_name}")
+        print(f"Creado el rol ejecución para el entorno MWAA {evn_name} con éxito")
         return True
 
 
 def create_policy_emr_mwaa(session_client, evn_name):
-    """Create a policy Amazon EMR for execution environment MWAA
+    """Creación de la política Amazon EMR para el entorno de ejecución MWAA
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :param evn_name:
-    :param session_client:
-    :return: True if bucket created, else False
+    @param evn_name: Nombre del entorno del servicio MWAA
+    @param session_client: Sesión AWS
+    @return: True si la política del servicio emr del entorno mwaa se crea, si no False
     """
     try:
         identity = session_client.client('sts').get_caller_identity()
@@ -62,7 +60,7 @@ def create_policy_emr_mwaa(session_client, evn_name):
         policy_name = f'PassRole_EMR_EC2-policy'
         role_name = f'{evn_name}-role'
 
-        file = open("artefacts/airflow/mwaa_emr_ec2_policy_doc.json", "r")
+        file = open("aws-services/airflow/mwaa_emr_ec2_policy_doc.json", "r")
         ct_file = file.read().replace("{your-account-id}", identity.get("Account"))
         file.close()
         iam.create_policy(session_client, policy_name, ct_file)
@@ -74,19 +72,16 @@ def create_policy_emr_mwaa(session_client, evn_name):
         return False
     else:
         time.sleep(20)
-        print(f"Create a policy {policy_name} for execution environment MWAA {evn_name} success")
+        print(f"Creada la política {policy_name} para el entorno de ejecución MWAA {evn_name} con éxito")
         return True
 
 
 def create_policy_redshift_mwaa(session_client, evn_name):
-    """Create a policy Amazon EMR for execution environment MWAA
+    """Creación de la política Amazon Redshift para el entorno de ejecución MWAA
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :param evn_name:
-    :param session_client:
-    :return: True if bucket created, else False
+    @param evn_name: Nombre del entorno del servicio MWAA
+    @param session_client: Sesión AWS
+    @return: True si la política del servicio redshift del entorno mwaa se crea, si no False
     """
     try:
         identity = session_client.client('sts').get_caller_identity()
@@ -94,7 +89,7 @@ def create_policy_redshift_mwaa(session_client, evn_name):
         policy_name = f'{evn_name}-Redshift-policy'
         role_name = f'{evn_name}-role'
 
-        file = open("artefacts/redshift/redshift_assume_policy_doc.json", "r")
+        file = open("aws-services/redshift/redshift_assume_policy_doc.json", "r")
         ct_file = file.read().replace("{your-account-id}", identity.get("Account"))
         file.close()
         iam.create_policy(session_client, policy_name, ct_file)
@@ -106,22 +101,19 @@ def create_policy_redshift_mwaa(session_client, evn_name):
         return False
     else:
         time.sleep(20)
-        print(f"Create a policy {policy_name} for execution environment MWAA {evn_name} success")
+        print(f"Creada la política {policy_name} para el entorno de ejecución MWAA {evn_name} con éxito")
         return True
 
 
 def create_mwaa_evn(evn_name, bucked_dags_name, session_client, security_ids, subnet_ids):
-    """Create a environment MWAA
+    """Creación entornó Amazon MWAA
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :param subnet_ids:
-    :param security_ids:
-    :param evn_name:
-    :param bucked_dags_name:
-    :param session_client:
-    :return: True if bucket created, else False
+    @param subnet_ids: Ids subredes de la vpc
+    @param security_ids: Ids grupos de seguridad de la vpc
+    @param evn_name: Nombre del entorno del servicio MWAA
+    @param bucked_dags_name: Nombre del bucket donde está el DAG
+    @param session_client: Sesión AWS
+    @return: True si el entorno se crea, si no False
     """
     try:
         role_exc_evn = session_client.client('iam').get_role(
@@ -169,21 +161,18 @@ def create_mwaa_evn(evn_name, bucked_dags_name, session_client, security_ids, su
         logging.error(e)
         return False
     else:
-        print(f"Creating environment MWAA {evn_name}...")
+        print(f"Creando el entorno Amazon MWAA {evn_name}...")
         time.sleep(60)
-        print(f"Crete environment MWAA {evn_name} success")
+        print(f"Creado el entorno MWAA {evn_name} con éxito")
         return True
 
 
 def deleted_mwaa_evn(evn_name, session_client):
-    """Deleted a environment MWAA
+    """Eliminación del entorno de Amazon de MWAA
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :param evn_name:
-    :param session_client:
-    :return: True if bucket created, else False
+    @param evn_name: Nombre del entorno del servicio MWAA
+    @param session_client: Sesión AWS
+    @return: True si el entorno mwaa se elimina, si no False
     """
     try:
         session_client.client('mwaa').delete_environment(
@@ -194,19 +183,16 @@ def deleted_mwaa_evn(evn_name, session_client):
         return False
     else:
         time.sleep(60)
-        print(f"Deleted environment MWAA {evn_name}")
+        print(f"Eliminado el entorno de Amazon MWAA {evn_name} con éxito")
         return True
 
 
 def deleted_rol_execution_evn(session_client, evn_name):
-    """Create a role execution environment for MWAA
+    """Eliminación del rol para el entorno de Amazon de MWAA
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :param evn_name:
-    :param session_client:
-    :return: True if bucket created, else False
+    @param evn_name:  Nombre del entorno del servicio MWAA
+    @param session_client: Sesión AWS
+    @return: True si el rol del entorno mwaa se elimina, si no False
     """
     try:
         iam.detach_role_policy(session_client, f'{evn_name}-policy', f'{evn_name}-role')
@@ -220,5 +206,5 @@ def deleted_rol_execution_evn(session_client, evn_name):
         return False
     else:
         time.sleep(20)
-        print(f"Deleted role execution evn {evn_name} success")
+        print(f"Eliminado el rol del entorno de Amazon MWAA {evn_name} con éxito")
         return True

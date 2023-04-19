@@ -302,14 +302,14 @@ def main():
                 dfFinal = df1
                 for df in dfs:
                     dfFinal = dfFinal.union(df)
-                dfFinal.write.mode("overwrite").json(f"s3://test-pgr-curated-zone/t_result_indicadores_stream2/fecha_ejecucion={date_data}")
+                dfFinal.write.mode("overwrite").json(f"s3://test-pgr-curated-zone/t_result_indicadores_stream/fecha_ejecucion={date_data}")
             except Exception as e:
                 print(f"Try {e}")
             else:
                 bolean = False
 
         deleted_data_results = "delete from t_result_indicadores_stream;"
-        insert_data_results = f"copy t_result_indicadores_stream from 's3://test-pgr-curated-zone/t_result_indicadores_stream2/fecha_ejecucion={date_data}/' " \
+        insert_data_results = f"copy t_result_indicadores_stream from 's3://test-pgr-curated-zone/t_result_indicadores_stream/fecha_ejecucion={date_data}/' " \
                               f"iam_role 'arn:aws:iam::354824231875:role/AmazonRedshift-indicadores-role' format as json 'auto';"
 
         print("connects db")

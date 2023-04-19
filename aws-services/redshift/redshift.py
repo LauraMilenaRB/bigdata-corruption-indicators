@@ -1,19 +1,22 @@
+"""
+Autores: Laura Milena Ramos Bermúdez y Juan Pablo Arevalo Merchán
+laura.ramos-b@mail.escuelaing.edu.co
+juan.arevalo-m@mail.escuelaing.edu.co
+"""
+
 import logging
 import time
 import psycopg2
 from botocore.exceptions import ClientError
 import iam
 
-import subprocess
-
 
 def create_roles_default_redshift(session_client, redshift_name):
-    """Create a role execution environment for MWAA
-
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :return: True if bucket created, else False
+    """Create a role default redshift
+    
+    @param redshift_name: 
+    @param session_client: object
+    @return: True si ..., si no False
     """
     try:
         policy_name = f'{redshift_name}-policy'
@@ -21,12 +24,12 @@ def create_roles_default_redshift(session_client, redshift_name):
 
         identity = session_client.client('sts').get_caller_identity()
 
-        file = open("artefacts/redshift/redshift_policy_doc.json", "r")
+        file = open("aws-services/redshift/redshift_policy_doc.json")
 
         iam.create_policy(session_client, policy_name, file.read())
         file.close()
 
-        iam.create_role(session_client, role_name, open("artefacts/redshift/redshift_assume_policy_doc.json").read())
+        iam.create_role(session_client, role_name, open("aws-services/redshift/redshift_assume_policy_doc.json").read())
         iam.attach_role_policy(session_client, role_name, 'arn:aws:iam::aws:policy/AmazonRedshiftAllCommandsFullAccess')
         iam.attach_role_policy(session_client, role_name,
                                f'arn:aws:iam::{identity.get("Account")}:policy/{policy_name}')
@@ -37,17 +40,16 @@ def create_roles_default_redshift(session_client, redshift_name):
     else:
         print("Creating role default redshift...")
         time.sleep(10)
-        print("Created role default redshift success")
+        print("Created role default redshift con éxito")
         return True
 
 
 def create_redshift_serverless(session_client, redshift_name):
     """Create a role execution environment for MWAA
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :return: True if bucket created, else False
+    @param redshift_name: 
+    @param session_client:
+    @return: True si ..., si no False
     """
     try:
 
@@ -67,17 +69,19 @@ def create_redshift_serverless(session_client, redshift_name):
     else:
         print("Creating redshift...")
         time.sleep(10)
-        print("Created redshift success")
+        print("Created redshift con éxito")
         return True
 
 
 def create_redshift_cluster(session_client, redshift_name, password_db, username_db, name_bd):
     """Create a role execution environment for MWAA
-
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :return: True if bucket created, else False
+    
+    @param name_bd: 
+    @param username_db: 
+    @param password_db: 
+    @param redshift_name: 
+    @param session_client:
+    @return: True si ..., si no False
     """
     try:
         client = session_client.client('redshift')
@@ -104,17 +108,20 @@ def create_redshift_cluster(session_client, redshift_name, password_db, username
     else:
         print("Creating redshift...")
         time.sleep(130)
-        print("Created redshift success")
+        print("Created redshift con éxito")
         return response
 
 
 def create_query_redshift(query, password_db, username_db, name_bd, end_point):
-    """Create a role execution environment for MWAA
+    """Ejecución query Redshift
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
+    @param query:
+    @param end_point:
+    @param name_bd:
+    @param username_db:
+    @param password_db:
+    @return: True si ..., si no False
 
-    :return: True if bucket created, else False
     """
     try:
         conn = psycopg2.connect(
@@ -137,19 +144,18 @@ def create_query_redshift(query, password_db, username_db, name_bd, end_point):
         logging.error(e)
         return False
     else:
-        print("Creating query redshift...")
+        print("Ejecutando query redshift...")
         time.sleep(10)
-        print("Created query redshift success")
+        print("Ejecutada query redshift con éxito")
         return True
 
 
 def deleted_cluster_redshift(session_client, redshift_name):
-    """Create a role execution environment for MWAA
+    """Eliminación cluster Amazon Redshift
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :return: True if bucket created, else False
+    @param session_client:
+    @param redshift_name:
+    @return: True si ..., si no False
     """
 
     try:
@@ -163,19 +169,18 @@ def deleted_cluster_redshift(session_client, redshift_name):
         logging.error(e)
         return False
     else:
-        print("Creating access query redshift...")
-        time.sleep(10)
-        print("Created access query redshift success")
+        print(f"Eliminando cluster redshift {redshift_name}...")
+        time.sleep(20)
+        print(f"Eliminado cluster redshift {redshift_name} con éxito")
         return True
 
 
 def deleted_roles_default_redshift(session_client, redshift_name):
-    """Create a role execution environment for MWAA
+    """Eliminación rol default Redshift
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :return: True if bucket created, else False
+    @param session_client:
+    @param redshift_name: object
+    @return: True si ..., si no False
     """
 
     try:
@@ -187,19 +192,18 @@ def deleted_roles_default_redshift(session_client, redshift_name):
         logging.error(e)
         return False
     else:
-        print("Creating access query redshift...")
+        print(f"Eliminando roles default redshift {redshift_name}...")
         time.sleep(10)
-        print("Created access query redshift success")
+        print(f"Eliminado cluster redshift {redshift_name} con éxito")
         return True
 
 
 def access_conf_query(session_client, cluster_list):
-    """Create a role execution environment for MWAA
+    """Configuración acceso a ejecución de query
 
-    If a region is not specified, the bucket is created in the S3 default
-    region (us-east-1).
-
-    :return: True if bucket created, else False
+    @param session_client:
+    @param cluster_list:
+    @return: True si ..., si no False
     """
 
     try:
@@ -220,7 +224,6 @@ def access_conf_query(session_client, cluster_list):
         logging.error(e)
         return False
     else:
-        print("Creating access query redshift...")
         time.sleep(10)
-        print("Created access query redshift success")
+        print("Acceso disponible a ejecución query redshift con éxito")
         return True
