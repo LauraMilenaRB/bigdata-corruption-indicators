@@ -256,7 +256,12 @@ Luego de verificar el despliegue de la arquitectura batch puede verificar el des
        ![img_39.png](img_39.png)
     4. Aquí puede configurar y usar otras herramientas de BI como Power BI, Tableau o Microstrategy utilizando los valores típicos de conexión a una base de datos. El host, nombre de la base de datos, usuario y contraseña.
        ![img_40.png](img_40.png)
-    
+
+
+### Eliminación de recursos y servicios en AWS
+1. Luego de utilizar la arquitectura es necesario limpiar nuestro espacio de trabajo para ahorrar costos, para la eliminación de politicas, roles, servicios y recursos de la arquitectura debe ejecutar el main_deleted.
+    ![img_48.png](img_48.png)
+2. Verifique todos los servicios utilizados y cerciórese de que están eliminados.
 
     
 

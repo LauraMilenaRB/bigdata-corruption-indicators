@@ -19,43 +19,35 @@ def parse_arguments():
     args = parser.parse_args()
     return args
 
+
 def main():
     spark = SparkSession.builder.appName('raw-stream').getOrCreate()
     spark.sql("set spark.sql.streaming.schemaInference=true")
-    date_data = datetime.now(pytz.timezone('America/Bogota')).date().isoformat()
     schema = StructType(
         [StructField("event_date", DateType(), True),
          StructField("event_time", StringType(), True),
+         StructField("id_no_contrato", StringType(), True),
          StructField("id_nit_entidad", StringType(), True),
          StructField("id_nit_proveedor", StringType(), True),
-         StructField("id_no_contrato", StringType(), True),
+         StructField("id_nit_empresa", StringType(), True),
          StructField("id_portafolio", StringType(), True),
-         StructField("monto_contrato", DecimalType(30, 3), True),
          StructField("nombre_proveedor", StringType(), True),
-         StructField("nombre_responsable_fiscal", StringType(), True)
+         StructField("nombre_responsable_fiscal", StringType(), True),
+         StructField("monto_contrato", DecimalType(30, 3), True)
          ])
-    data_source = spark.readStream.schema(schema).json(f"s3://test-pgr-staging-zone/t_streaming_contracts/{date_data}/")
-    print(f"Read text s3://test-pgr-staging-zone/t_streaming_contracts/{date_data}/")
+
     pyspark_args = parse_arguments()
-
-    query = data_source \
-        .writeStream \
-        .outputMode("append") \
-        .format(f"parquet") \
-        .option("checkpointLocation", f"s3://test-pgr-aws-logs/streams_checkpoints/raw/") \
-        .option("path", f"s3://test-pgr-raw-zone/t_streaming_contracts/{date_data}") \
-        .start()
-
-    time.sleep(5)
-
-    command = f'aws emr add-steps --cluster-id {pyspark_args.id_cluster} --steps Type=CUSTOM_JAR,Name="Spark Program",Jar="command-runner.jar",ActionOnFailure=CONTINUE,' \
-              f'Args=[spark-submit, --master, yarn,--deploy-mode, client, s3://test-pgr-req-files/scripts/spark_stream_ind_mini_batch.py,' \
-              f'--endpoint,{pyspark_args.endpoint}, --user,{pyspark_args.user}, ' \
-              f'--pwd,{pyspark_args.pwd}, --db,{pyspark_args.db}, --id_cluster,{pyspark_args.id_cluster}]'
-
-    subprocess.run(command, shell=True)
-
-    query.awaitTermination()
+    command = f'aws emr add-steps --cluster-id {pyspark_args.id_cluster} ' \
+              f'--steps Type=CUSTOM_JAR,Name="spark_stream_ind_mini_batch",Jar="command-runner.jar",ActionOnFailure=CONTINUE,Args=[spark-submit,--master,yarn,--deploy-mode,client,s3://test-pgr-req-files/scripts/spark_stream_ind_mini_batch.py,' \
+              f'--endpoint,{pyspark_args.endpoint},--user,{pyspark_args.user},--pwd,{pyspark_args.pwd},--db,{pyspark_args.db}]'
+    #subprocess.run(command, shell=True)
+    while True:
+        date_data = datetime.now(pytz.timezone('America/Bogota')).date().isoformat()
+        data_source = spark.read.schema(schema).json(f"s3://test-pgr-staging-zone/t_streaming_contracts/{date_data}/")
+        print(f"Read text s3://test-pgr-staging-zone/t_streaming_contracts/{date_data}/")
+        data_source.write.mode("overwrite").parquet(f"s3://test-pgr-raw-zone/t_streaming_contracts/{date_data}")
+        subprocess.run(command, shell=True)
+        time.sleep(90)
 
 
 if __name__ == '__main__':

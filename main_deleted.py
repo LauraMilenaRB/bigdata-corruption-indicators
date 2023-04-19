@@ -2,8 +2,8 @@ import time
 from configparser import ConfigParser
 import json
 import boto3
-import athena
 import buckets
+import iam
 import kinesis
 import emr
 import redshift
@@ -83,11 +83,23 @@ def deleted_job_emr():
     emr.deleted_roles_default_emr(session)
 
 
+def deleted_roles_services():
+    print("**********************************************************\n"
+          "*                  IAM Servicio de AWS                   *\n"
+          "**********************************************************")
+    iam.delete_role(session, f'AWSServiceRoleForAmazonMWA')
+    iam.delete_role(session, f'AWSServiceRoleForRedshift')
+    iam.delete_role(session, f'AWSServiceRoleForEMRCleanup')
+    iam.delete_role(session, f'AWSServiceRoleForAmazonMWA')
+
+
 if __name__ == '__main__':
+
     deleted_buckets()
     deleted_vpc()
     deleted_airflow()
     deleted_kinesis_stream()
     deleted_redshift()
     deleted_job_emr()
+    #deleted_roles_services()
 

@@ -1,5 +1,3 @@
-import subprocess
-
 import psycopg2
 from pyspark.sql.functions import *
 from pyspark.sql import SparkSession
@@ -11,22 +9,32 @@ import pytz
 
 def ind_abuso_contratacion(dfPrCon, date_data, df):
     print("ind_abuso_contratacion")
-    df = df.select("id_no_contrato", "id_nit_entidad", "id_nit_proveedor", "monto_contrato")
-    dfTotal1 = df.join(dfPrCon, ["id_nit_entidad", "id_nit_proveedor"], "inner") \
-        .select(col("id_no_contrato"), col("id_nit_entidad"), col("id_nit_proveedor"),
-                col("monto_total_adjudicado").alias("monto_contrato")) \
-        .union(df).filter(~col("id_nit_proveedor").isin("No Definido", "No Adjudicado")) \
-        .withColumn("timestamp", lit(time.time()).cast("timestamp")).withWatermark("timestamp", "60 seconds") \
-        .groupBy(col("id_no_contrato"), col("id_nit_entidad"), col("id_nit_proveedor")) \
-        .agg(count("*").alias("cantidad_asignadas"), sum("monto_contrato").alias("monto_contrato"))
+    df_filter = df.dropDuplicates(["id_no_contrato"]).select("id_no_contrato", "id_nit_entidad", "id_nit_proveedor",
+                                                             "monto_contrato") \
+        .filter(~col("id_nit_proveedor").isin("No Definido", "No Adjudicado"))
+
+    dfPrCon2 = dfPrCon.dropDuplicates(["id_proceso"]).select(col("id_nit_entidad"), col("id_nit_proveedor")) \
+        .filter(~col("id_nit_proveedor").isin("No Definido", "No Adjudicado"))
+
+    dfTotal1 = df_filter.join(dfPrCon2, ["id_nit_entidad", "id_nit_proveedor"], "inner").select("id_no_contrato",
+                                                                                                "id_nit_entidad",
+                                                                                                "id_nit_proveedor",
+                                                                                                "monto_contrato") \
+        .union(df_filter).withColumn("timestamp", lit(time.time()).cast("timestamp")).withWatermark("timestamp",
+                                                                                                    "5 minutes") \
+        .groupBy(col("id_no_contrato"), col("id_nit_entidad"), col("id_nit_proveedor"),
+                 window(col("timestamp"), "5 minutes").alias("window")) \
+        .agg(count("*").alias("cantidad_asignadas"), sum("monto_contrato").alias("monto_contrato"),
+             max("timestamp").alias("fecha_ejecucion"))
 
     dfFinal = dfTotal1.select(col("id_no_contrato"),
-                              lit("Otros indicadores").alias("nombre_grupo_indicador"),
-                              lit("Abuso de la contratación").alias("nombre_indicador"),
+                              lit("otros indicadores").alias("nombre_grupo_indicador"),
+                              lit("abuso de la contratación").alias("nombre_indicador"),
                               when(col("cantidad_asignadas") >= 3, lit("Si")).otherwise(lit("No")).alias(
                                   "tipo_alerta_irregularidad"),
                               col("monto_contrato"),
-                              lit(date_data).alias("fecha_ejecucion")
+                              col("window"),
+                              col("fecha_ejecucion")
                               )
 
     return dfFinal
@@ -38,74 +46,75 @@ def ind_ofertas_costosas(dfOfPPro, date_data, df):
 
 def ind_contratos_prov_inactivos(dfPNPJESAL, date_data, df):
     print("ind_contratos_prov_inactivos")
-    dfPNPJESALCancel = dfPNPJESAL.select(col("nombre_razon_social"), col("tipo_identificacion"), col("id_empresa"),
-                                         col("id_nit_empresa"), col("id_digito_verificacion"),
-                                         col("fecha_ultima_renovacion"), col("fecha_cancelacion"),
-                                         col("tipo_estado_matricula")).filter(
+    dfPNPJESALCancel = dfPNPJESAL.select(col("id_empresa"), col("id_nit_empresa"), col("tipo_estado_matricula")).filter(
         col("tipo_estado_matricula").isin("CANCELADA"))
-
     dfunion1 = df.alias("contratos").join(dfPNPJESALCancel.alias("camara"),
-                                          col("id_nit_proveedor") == col("id_nit_empresa"), "left")
+                                          col("contratos.id_nit_empresa") == col("camara.id_nit_empresa"), "left")
     dfunion2 = df.alias("contratos").join(dfPNPJESALCancel.alias("camara"),
-                                          col("id_nit_proveedor") == col("id_empresa"), "left")
-    dfTotalCan = dfunion1.union(dfunion2).distinct()
+                                          col("contratos.id_nit_empresa") == col("camara.id_empresa"), "left")
+    dfTotalCan = dfunion1.union(dfunion2).dropDuplicates(["id_no_contrato"])
 
     dfTotal = dfTotalCan.withColumn("timestamp", lit(time.time()).cast("timestamp")).withWatermark("timestamp",
-                                                                                                   "60 seconds") \
-        .groupBy(col("id_nit_entidad"), col("id_nit_proveedor"), col("id_no_contrato"),
+                                                                                                   "5 minutes") \
+        .withColumn("marca_pep", when(col("tipo_estado_matricula").isNull(), 0).otherwise(col("tipo_estado_matricula"))) \
+        .groupBy(col("contratos.id_nit_empresa"), col("id_nit_proveedor"), col("id_no_contrato"),
                  window(col("timestamp"), "5 minutes").alias("window")) \
-        .agg(count("*").alias("count"), sum("monto_contrato").alias("monto_contrato"),
-             max("timestamp").alias("fecha_ejecucion"))
+        .agg(count("*").alias("count"), sum(col("tipo_estado_matricula")).alias("tipo_estado_matricula"),
+             sum("monto_contrato").alias("monto_contrato"), max("timestamp").alias("fecha_ejecucion"))
 
     dfFinal = dfTotal.select(col("id_no_contrato"),
-                             lit("Otros indicadores").alias("nombre_grupo_indicador"),
-                             lit("Contratos con proveedores inactivos").alias("nombre_indicador"),
-                             when(col("count") >= 2, lit("Si")).otherwise(lit("No")).alias("tipo_alerta_irregularidad"),
+                             lit("otros indicadores").alias("nombre_grupo_indicador"),
+                             lit("contratos con proveedores inactivos").alias("nombre_indicador"),
+                             when(col("tipo_estado_matricula") >= 1, lit("Si")).otherwise(lit("No")).alias(
+                                 "tipo_alerta_irregularidad"),
                              col("monto_contrato"),
                              col("window"),
                              col("fecha_ejecucion")
                              )
-
     return dfFinal
 
 
 def ind_contratos_prov_PEP(dfPeP, date_data, df):
     print("ind_contratos_prov_PEP")
-    dfFinalpep1 = df.alias("contratos").join(dfPeP.alias("pep").select(lit(1).alias("marca_pep"), "id_nit_pep"),
-                                             col("id_nit_proveedor") == col("id_nit_pep"), "left") \
-        .withColumn("marca_pep", when(col("marca_pep").isNull(), 0).otherwise(col("marca_pep"))) \
-        .withColumn("timestamp", lit(time.time()).cast("timestamp")).withWatermark("timestamp", "60 seconds") \
+
+    df25_filter = df.dropDuplicates(["id_no_contrato"]).alias("contratos").join(
+        dfPeP.alias("pep").select(col("id_nit_pep"), lit(1).alias("marca_pep")),
+        col("id_nit_proveedor") == col("id_nit_pep"), "left")
+
+    df25 = df25_filter.withColumn("marca_pep", when(col("marca_pep").isNull(), 0).otherwise(col("marca_pep"))) \
+        .withColumn("timestamp", lit(time.time()).cast("timestamp")).withWatermark("timestamp", "5 minutes") \
         .groupBy(col("id_no_contrato"), window(col("timestamp"), "5 minutes").alias("window")).agg(
         sum(col("marca_pep")).alias("count"), sum("monto_contrato").alias("monto_contrato"),
         max("timestamp").alias("fecha_ejecucion"))
 
-    dfFinalpep = dfFinalpep1.select(col("id_no_contrato"),
-                                     lit("Otros indicadores").alias("nombre_grupo_indicador"),
-                                     lit("Contratos con proveedores PEP").alias("nombre_indicador"),
-                                     when(col("count") >= 1, lit("Si")).otherwise(lit("No")).alias(
-                                         "tipo_alerta_irregularidad"),
-                                     col("monto_contrato"),
-                                     col("window"),
-                                     col("fecha_ejecucion")
-                                     )
+    dfFinalpep = df25.select(col("id_no_contrato"),
+                              lit("otros indicadores").alias("nombre_grupo_indicador"),
+                              lit("contratos con proveedores PEP").alias("nombre_indicador"),
+                              when(col("count") >= 1, lit("Si")).otherwise(lit("No")).alias(
+                                  "tipo_alerta_irregularidad"),
+                              col("monto_contrato"),
+                              col("window"),
+                              col("fecha_ejecucion")
+                              )
 
     return dfFinalpep
 
 
 def ind_contratos_prov_pust_sensibles(dfPuSenCorr, date_data, df):
     print("ind_contratos_prov_pust_sensibles")
-    dfFinal = df.alias("contratos").join(
+    df26_filter = df.alias("contratos").join(
         dfPuSenCorr.alias("pep").select(lit(1).alias("marca_pep"), "id_nit_identificacion"),
-        col("id_nit_proveedor") == col("id_nit_identificacion"), "left") \
-        .withColumn("marca_pep", when(col("marca_pep").isNull(), 0).otherwise(col("marca_pep"))) \
-        .withColumn("timestamp", lit(time.time()).cast("timestamp")).withWatermark("timestamp", "60 seconds") \
+        col("id_nit_proveedor") == col("id_nit_identificacion"), "left")
+
+    dfFinal = df26_filter.withColumn("marca_pep", when(col("marca_pep").isNull(), 0).otherwise(col("marca_pep"))) \
+        .withColumn("timestamp", lit(time.time()).cast("timestamp")).withWatermark("timestamp", "5 minutes") \
         .groupBy(col("id_no_contrato"), window(col("timestamp"), "5 minutes").alias("window")).agg(
         sum(col("marca_pep")).alias("count"), sum("monto_contrato").alias("monto_contrato"),
         max("timestamp").alias("fecha_ejecucion"))
 
     dfEscritura26 = dfFinal.select(col("id_no_contrato"),
-                                   lit("Otros indicadores").alias("nombre_grupo_indicador"),
-                                   lit("Contratos con proveedores con puestos sensibles").alias("nombre_indicador"),
+                                   lit("otros indicadores").alias("nombre_grupo_indicador"),
+                                   lit("contratos con proveedores con puestos sensibles").alias("nombre_indicador"),
                                    when(col("count") >= 1, lit("Si")).otherwise(lit("No")).alias(
                                        "tipo_alerta_irregularidad"),
                                    col("monto_contrato"),
@@ -118,21 +127,23 @@ def ind_contratos_prov_pust_sensibles(dfPuSenCorr, date_data, df):
 
 def ind_contratistas_contratos_cancel(dfCoCa, date_data, df):
     print("ind_contratistas_contratos_cancel")
-    dfProveedoresCancelados = dfCoCa.alias("cancelados").groupBy(col("id_nit_rep_legal")).count().filter(
-        ~col("cancelados.id_nit_rep_legal").isin("No Definido"))
+    dfProveedoresCancelados = dfCoCa.groupBy(col("id_nit_rep_legal")).count().alias("cancelados").filter(
+        ~col("id_nit_rep_legal").isin("No Definido")).select(lit(1).alias("marca_cancel"), "id_nit_rep_legal")
 
-    dfFinal = df.alias("contratos") \
-        .join(dfProveedoresCancelados.select(lit(1).alias("marca_cancel"), "id_nit_rep_legal"),
-              col("contratos.id_nit_proveedor") == col("cancelados.id_nit_rep_legal"), "left") \
-        .withColumn("marca_cancel", when(col("marca_cancel").isNull(), 0).otherwise(col("marca_cancel"))) \
-        .withColumn("timestamp", lit(time.time()).cast("timestamp")).withWatermark("timestamp", "60 seconds") \
+    df31_filter = df.alias("contratos").join(dfProveedoresCancelados,
+                                             col("contratos.id_nit_proveedor") == col("cancelados.id_nit_rep_legal"),
+                                             "left")
+
+    dfFinal = df31_filter.withColumn("marca_cancel",
+                                     when(col("marca_cancel").isNull(), 0).otherwise(col("marca_cancel"))) \
+        .withColumn("timestamp", lit(time.time()).cast("timestamp")).withWatermark("timestamp", "5 minutes") \
         .groupBy(col("id_no_contrato"), window(col("timestamp"), "5 minutes").alias("window")).agg(
         sum(col("marca_cancel")).alias("count"), sum("monto_contrato").alias("monto_contrato"),
         max("timestamp").alias("fecha_ejecucion"))
 
     dfEscritura26 = dfFinal.select(col("id_no_contrato"),
-                                   lit("Indicadores incumplimiento").alias("nombre_grupo_indicador"),
-                                   lit("Contratistas con contratos cancelados").alias("nombre_indicador"),
+                                   lit("indicadores incumplimiento").alias("nombre_grupo_indicador"),
+                                   lit("contratistas con contratos cancelados").alias("nombre_indicador"),
                                    when(col("count") >= 1, lit("Si")).otherwise(lit("No")).alias(
                                        "tipo_alerta_irregularidad"),
                                    col("monto_contrato"),
@@ -149,18 +160,20 @@ def ind_contratos_incumplimiento_entregas(dfS2MulSan, date_data, df):
 
 def ind_inhabilitados_multas(dfS2MulSan, date_data, df):
     print("ind_inhabilitados_multas")
-    df41 = df.alias("contratos") \
-        .join(dfS2MulSan.select("nombre_contratista_sancionado", lit(1).alias("marca_multa")).distinct(),
-              col("nombre_proveedor") == col("nombre_contratista_sancionado"), "left") \
+    df_filter41 = df.alias("contratos").join(
+        dfS2MulSan.select("nombre_contratista_sancionado", lit(1).alias("marca_multa")).distinct(),
+        col("nombre_proveedor") == col("nombre_contratista_sancionado"), "left")
+
+    df41 = df_filter41.alias("contratos") \
         .withColumn("marca_multa", when(col("marca_multa").isNull(), 0).otherwise(col("marca_multa"))) \
-        .withColumn("timestamp", lit(time.time()).cast("timestamp")).withWatermark("timestamp", "60 seconds") \
+        .withColumn("timestamp", lit(time.time()).cast("timestamp")).withWatermark("timestamp", "5 minutes") \
         .groupBy(col("id_no_contrato"), window(col("timestamp"), "5 minutes").alias("window")).agg(
         sum(col("marca_multa")).alias("count"), sum("monto_contrato").alias("monto_contrato"),
         max("timestamp").alias("fecha_ejecucion"))
 
     dfEscritura41 = df41.select(col("id_no_contrato"),
-                                lit("Indicadores por inhabilidad").alias("nombre_grupo_indicador"),
-                                lit("Inhabilitados por multa").alias("nombre_indicador"),
+                                lit("indicadores por inhabilidad").alias("nombre_grupo_indicador"),
+                                lit("inhabilitados por multa").alias("nombre_indicador"),
                                 when(col("count") >= 1, lit("Si")).otherwise(lit("No")).alias(
                                     "tipo_alerta_irregularidad"),
                                 col("monto_contrato"),
@@ -173,11 +186,13 @@ def ind_inhabilitados_multas(dfS2MulSan, date_data, df):
 
 def ind_inhabilitados_obras_inconclusas(dfPCObraInco, date_data, df):
     print("ind_inhabilitados_obras_inconclusas")
-    df42 = df.alias("contratos") \
-        .join(dfPCObraInco.select("nombre_rol_1", lit(1).alias("marca_obras_inc")).filter(
-        ~col("nombre_rol_1").isNull()).distinct(), col("nombre_proveedor") == col("nombre_rol_1"), "left") \
-        .withColumn("marca_obras_inc", when(col("marca_obras_inc").isNull(), 0).otherwise(col("marca_obras_inc"))) \
-        .withColumn("timestamp", lit(time.time()).cast("timestamp")).withWatermark("timestamp", "60 seconds") \
+    df42_filter = df.alias("contratos").join(
+        dfPCObraInco.select("nombre_rol_1", lit(1).alias("marca_obras_inc")).filter(
+            ~col("nombre_rol_1").isNull()).distinct(), col("nombre_proveedor") == col("nombre_rol_1"), "left")
+
+    df42 = df42_filter.withColumn("marca_obras_inc",
+                                  when(col("marca_obras_inc").isNull(), 0).otherwise(col("marca_obras_inc"))) \
+        .withColumn("timestamp", lit(time.time()).cast("timestamp")).withWatermark("timestamp", "5 minutes") \
         .groupBy(col("id_no_contrato"), window(col("timestamp"), "5 minutes").alias("window")).agg(
         sum(col("marca_obras_inc")).alias("count"), sum("monto_contrato").alias("monto_contrato"),
         max("timestamp").alias("fecha_ejecucion"))
@@ -197,11 +212,13 @@ def ind_inhabilitados_obras_inconclusas(dfPCObraInco, date_data, df):
 
 def ind_inhabilitados_resp_fiscal(dfRespFis, date_data, df):
     print("ind_inhabilitados_resp_fiscal")
-    df43 = df.alias("contratos") \
-        .join(dfRespFis.select("nombre_responsable_fiscal", lit(1).alias("marca_resp_fiscal")).filter(
-        ~col("nombre_responsable_fiscal").isNull()).distinct(), ["nombre_responsable_fiscal"], "left") \
-        .withColumn("marca_resp_fiscal", when(col("marca_resp_fiscal").isNull(), 0).otherwise(col("marca_resp_fiscal"))) \
-        .withColumn("timestamp", lit(time.time()).cast("timestamp")).withWatermark("timestamp", "60 seconds") \
+    df43_filter = df.join(
+        dfRespFis.select("nombre_responsable_fiscal", lit(1).alias("marca_resp_fiscal")).alias("contratos").filter(
+            ~col("nombre_responsable_fiscal").isNull()).distinct(), ["nombre_responsable_fiscal"], "left")
+
+    df43 = df43_filter.withColumn("marca_resp_fiscal",
+                                  when(col("marca_resp_fiscal").isNull(), 0).otherwise(col("marca_resp_fiscal"))) \
+        .withColumn("timestamp", lit(time.time()).cast("timestamp")).withWatermark("timestamp", "5 minutes") \
         .groupBy(col("id_no_contrato"), window(col("timestamp"), "5 minutes").alias("window")).agg(
         sum(col("marca_resp_fiscal")).alias("count"), sum("monto_contrato").alias("monto_contrato"),
         max("timestamp").alias("fecha_ejecucion"))
@@ -257,30 +274,35 @@ def main():
                    "s3://test-pgr-raw-zone/t_seii_ejecucioncon_avancerevses"]
 
     date_data = datetime.now(pytz.timezone('America/Bogota')).date().isoformat()
-    data_source = spark.read.parquet(f"s3://test-pgr-raw-zone/t_streaming_contracts/{date_data}/*")
-    print(f"Read parquet s3://test-pgr-raw-zone/t_streaming_contracts/{date_data}/")
     data_frames_origin = get_data_frames(spark, list_source)
+    bolean = True
+    while bolean:
+        try:
+            data_source = spark.read.parquet(f"s3://test-pgr-raw-zone/t_streaming_contracts/{date_data}/*")
+            print(f"Read parquet s3://test-pgr-raw-zone/t_streaming_contracts/{date_data}/")
 
-    df1 = ind_abuso_contratacion(data_frames_origin["t_seii_procecotrata_compraadjudi"], date_data, data_source)
-    #df2 = ind_ofertas_costosas(data_frames_origin["t_seii_ofertaproces_procesocompr"], date_data, data_source)
-    df3 = ind_contratos_prov_inactivos(data_frames_origin["t_otro_pernajuesadl_camarcomerci"], date_data, data_source)
-    df4 = ind_contratos_prov_PEP(data_frames_origin["t_otro_persexpupoli_sigepperexpo"], date_data, data_source)
-    df5 = ind_contratos_prov_pust_sensibles(data_frames_origin["t_otro_puestsensibl_sigeppsscorr"], date_data, data_source)
-    df6 = ind_contratistas_contratos_cancel(data_frames_origin["t_seii_contracanela_aislamiencon"], date_data, data_source)
-    #df7 = ind_contratos_incumplimiento_entregas(data_frames_origin["t_seii_ejecucioncon_avancerevses"], date_data, data_source)
-    df8 = ind_inhabilitados_multas(data_frames_origin["t_seii_multasysanci_secopiimulsa"], date_data, data_source)
-    df9 = ind_inhabilitados_obras_inconclusas(data_frames_origin["t_paco_registro_obras_inconclusa"], date_data, data_source)
-    df10 = ind_inhabilitados_resp_fiscal(data_frames_origin["t_paco_responsabilidad_fiscales"], date_data, data_source)
-
-    dfs = [df3, df4, df5, df6, df8, df9, df10]
-    dfFinal = df1
-    for df in dfs:
-        dfFinal = dfFinal.union(df)
-
-    dfFinal.write.mode("overwrite").json(f"s3://test-pgr-curated-zone/t_result_indicadores_stream_final2/fecha_ejecucion={date_data}")
+            df1 = ind_abuso_contratacion(data_frames_origin["t_seii_procecotrata_compraadjudi"], date_data, data_source)
+            #df2 = ind_ofertas_costosas(data_frames_origin["t_seii_ofertaproces_procesocompr"], date_data, data_source)
+            df3 = ind_contratos_prov_inactivos(data_frames_origin["t_otro_pernajuesadl_camarcomerci"], date_data, data_source)
+            df4 = ind_contratos_prov_PEP(data_frames_origin["t_otro_persexpupoli_sigepperexpo"], date_data, data_source)
+            df5 = ind_contratos_prov_pust_sensibles(data_frames_origin["t_otro_puestsensibl_sigeppsscorr"], date_data, data_source)
+            df6 = ind_contratistas_contratos_cancel(data_frames_origin["t_seii_contracanela_aislamiencon"], date_data, data_source)
+            #df7 = ind_contratos_incumplimiento_entregas(data_frames_origin["t_seii_ejecucioncon_avancerevses"], date_data, data_source)
+            df8 = ind_inhabilitados_multas(data_frames_origin["t_seii_multasysanci_secopiimulsa"], date_data, data_source)
+            df9 = ind_inhabilitados_obras_inconclusas(data_frames_origin["t_paco_registro_obras_inconclusa"], date_data, data_source)
+            df10 = ind_inhabilitados_resp_fiscal(data_frames_origin["t_paco_responsabilidad_fiscales"], date_data, data_source)
+            dfs = [df3, df4, df5, df6, df8, df9, df10]
+            dfFinal = df1
+            for df in dfs:
+                dfFinal = dfFinal.union(df)
+            dfFinal.write.mode("overwrite").json(f"s3://test-pgr-curated-zone/t_result_indicadores_stream/fecha_ejecucion={date_data}")
+        except Exception as e:
+            print(f"Try {e}")
+        else:
+            bolean = False
 
     deleted_data_results = "delete from t_result_indicadores_stream;"
-    insert_data_results = f"copy t_result_indicadores_stream from 's3://test-pgr-curated-zone/t_result_indicadores_stream_final2/{date_data}/' " \
+    insert_data_results = f"copy t_result_indicadores_stream from 's3://test-pgr-curated-zone/t_result_indicadores_stream/fecha_ejecucion={date_data}/' " \
                           f"iam_role 'arn:aws:iam::354824231875:role/AmazonRedshift-indicadores-role' format as json 'auto';"
     
     print("connects db")
@@ -302,7 +324,6 @@ def main():
     conn.close()
 
     print("Write Redshift t_result_indicadores_stream")
-    spark.streams.awaitAnyTermination()
 
 
 if __name__ == '__main__':

@@ -83,7 +83,6 @@ def create_apache_airflow():
     subnets_id = vpc.get_private_subnets_id(vpc_ids, session)
     sec_group = vpc.get_security_group_id(vpc_ids, session)
 
-    emr.create_roles_default_emr(session)
     airflow.create_rol_execution_evn(session, bucket_dag_prefix, evn_name)
     airflow.create_policy_emr_mwaa(session, evn_name)
     airflow.create_mwaa_evn(evn_name, bucket_dag_prefix, session, sec_group, subnets_id[1:])
@@ -108,10 +107,9 @@ def create_streams_flow():
     endpoint = cluster_list.get('Endpoint').get('Address')
     print(subnets_id)
 
-    emr.run_job_flow_emr(session, emr_stream_name, concurrent_steps, s3_logs_output, subnets_id[0],
-                         endpoint, password_bd_redshift, user_bd_redshift, name_bd_redshift)
-    #id_cluster = emr.get_id_job_flow_emr(session, emr_stream_name)
-    #emr.add_job_flow_steps(session, id_cluster, endpoint, password_bd_redshift, user_bd_redshift, name_bd_redshift)
+    emr.run_job_flow_emr(session, emr_stream_name, concurrent_steps, s3_logs_output, subnets_id[0])
+    id_cluster = emr.get_id_job_flow_emr(session, emr_stream_name)
+    emr.add_job_flow_steps(session, id_cluster, endpoint, password_bd_redshift, user_bd_redshift, name_bd_redshift)
 
 
 def create_service_redshift():
@@ -142,9 +140,9 @@ def create_tables_redshift():
 if __name__ == '__main__':
     #create_update_buckets()
     #create_service_redshift()
-    create_vpc_subnets()
+    #create_vpc_subnets()
     #create_apache_airflow()
-    #create_streams_flow()
+    create_streams_flow()
     #create_tables_redshift()
 
 

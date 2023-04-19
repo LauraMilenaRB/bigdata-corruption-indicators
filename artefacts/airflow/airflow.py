@@ -186,11 +186,9 @@ def deleted_mwaa_evn(evn_name, session_client):
     :return: True if bucket created, else False
     """
     try:
-
         session_client.client('mwaa').delete_environment(
             Name=evn_name
         )
-
     except ClientError as e:
         logging.error(e)
         return False
@@ -216,6 +214,7 @@ def deleted_rol_execution_evn(session_client, evn_name):
         iam.detach_role_policy_aws(session_client, f'AmazonS3FullAccess', f'{evn_name}-role')
         iam.detach_role_policy_aws(session_client, f'AmazonRedshiftAllCommandsFullAccess', f'{evn_name}-role')
         iam.delete_role(session_client, f'{evn_name}-role')
+
     except ClientError as e:
         logging.error(e)
         return False

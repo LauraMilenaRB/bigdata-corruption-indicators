@@ -23,8 +23,9 @@ def attach_role_policy(session_client, role_name, arn_policy, path=None):
     except ClientError as e:
         logging.error(e)
         return None
-    print(f"Creating role policy {role_name} {arn_policy}")
-    time.sleep(10)
+    else:
+        print(f"Creating role policy {role_name} {arn_policy}")
+        time.sleep(10)
     return response
 
 
@@ -45,8 +46,9 @@ def create_policy(session_client, policy_name, policy, path=None):
     except ClientError as e:
         logging.error(e)
         return None
-    print(f"Creating policy {policy_name}")
-    time.sleep(10)
+    else:
+        print(f"Creating policy {policy_name}")
+        time.sleep(10)
     return response
 
 
@@ -75,8 +77,9 @@ def create_role(session_client, role_name, assume_policy=None, path=None):
     except ClientError as e:
         logging.error(e)
         return None
-    print(f"Creating role {role_name}")
-    return response
+    else:
+        print(f"Creating role {role_name}")
+        return response
 
 
 def detach_role_policy(session_client, policy_name, role_name):
@@ -105,9 +108,10 @@ def detach_role_policy(session_client, policy_name, role_name):
     except ClientError as e:
         logging.error(e)
         return False
-    print(f"Detach role policy {role_name} {policy_name}")
-    time.sleep(10)
-    return True
+    else:
+        print(f"Detach role policy {role_name} {policy_name}")
+        time.sleep(10)
+        return True
 
 
 def detach_role_policy_aws(session_client, policy_name, role_name):
@@ -131,9 +135,10 @@ def detach_role_policy_aws(session_client, policy_name, role_name):
     except ClientError as e:
         logging.error(e)
         return False
-    print(f"Detach role policy {role_name} {policy_name}")
-    time.sleep(10)
-    return True
+    else:
+        print(f"Detach role policy {role_name} {policy_name}")
+        time.sleep(10)
+        return True
 
 
 def delete_role(session_client, role_name):
@@ -150,9 +155,10 @@ def delete_role(session_client, role_name):
     except ClientError as e:
         logging.error(e)
         return False
-    print(f"Deleted role {role_name}")
-    time.sleep(10)
-    return True
+    else:
+        print(f"Deleted role {role_name}")
+        time.sleep(10)
+        return True
 
 
 def remove_role_from_instance_profile(session_client, role_name, instance_profile):
@@ -172,9 +178,10 @@ def remove_role_from_instance_profile(session_client, role_name, instance_profil
     except ClientError as e:
         logging.error(e)
         return False
-    print(f"Remove role {role_name} from instance profile {instance_profile}")
-    time.sleep(10)
-    return True
+    else:
+        print(f"Remove role {role_name} from instance profile {instance_profile}")
+        time.sleep(10)
+        return True
 
 
 def add_role_from_instance_profile(session_client, role_name, instance_profile):
@@ -194,6 +201,7 @@ def add_role_from_instance_profile(session_client, role_name, instance_profile):
     except ClientError as e:
         logging.error(e)
         return False
-    print(f"Add role {role_name} from instance profile {instance_profile}")
-    time.sleep(10)
-    return True
+    else:
+        print(f"Add role {role_name} from instance profile {instance_profile}")
+        time.sleep(10)
+        return True
