@@ -112,14 +112,14 @@ Para poder desplegar la arquitectura propuesta se desarrollaron los componentes 
       5. ***DDL_result_batch***: Sentencia SQL del DDL de la tabla de resultados batch.
       6. ***DDL_result_stream***: Sentencia SQL del DDL de la tabla de resultados streaming.
 
-6. Ejecute el Main principal, este tiene las funciones de creación de S3 Buckets, Apache airflow, VPCs, Kinesis, Amazon EMR y Amazon Redshift.<br>
+6. Ejecute el Main principal y espere a que termine, este tiene las funciones de creación de S3 Buckets, Apache airflow, VPCs, Kinesis, Amazon EMR y Amazon Redshift.
    <br>![img_4.png](img/img_4.png)<br>
 
 7. Verifique la creación de los buckets, carpetas y carga de archivos correspondientes en la consola de servicios de Amazon S3, este proceso puede demorar un poco si se suben archivos locales.
    <br>![img_7.png](img/img_7.png)<br>
    <br>![img_8.png](img/img_8.png)<br>
 
-8. Verifique la creación del cluster de Amazon Redshift, para esto diríjase en la consola de servicios de Amazon Redshift. y debe ver el cluster disponible,
+8. Verifique la creación del cluster de Amazon Redshift, para esto diríjase en la consola de servicios y busque Amazon Redshift. Luego de esto debe ver el cluster ***'Available'***.
    <br>![img_44.png](img/img_44.png)<br>
    1. De clic en el cluster, luego en *'Datos de consulta'* > *Consulta en el editor de consultas v2*
    <br>![img_45.png](img/img_45.png)<br>
