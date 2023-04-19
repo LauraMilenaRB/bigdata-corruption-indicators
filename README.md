@@ -19,11 +19,11 @@ juan.arevalo-m@mail.escuelaing.edu.co<br>
    3. [Visualización de datos](#visualizacion-de-datos)
 
 ## Arquitectura propuesta en AWS
-![img.png](img/img.png)
+<br>![img.png](img/img.png)<br>
 
 ## Instalacion
 Para poder desplegar la arquitectura propuesta se desarrollaron los componentes requeridos con la siguiente estructura:
-![img_1.png](img/img_1.png)
+<br>![img_1.png](img/img_1.png)<br>
 1. **aws-services:** Se encuentran las funciones requeridas para poder crear, configurar y desplegar los servicios requeridos.
 2. **src:** Se encuentran los archivos requeridos para configurar variables generales de la arquitectura.
 3. **main.py:** Main principal para la creación de la arquitectura propuesta.
