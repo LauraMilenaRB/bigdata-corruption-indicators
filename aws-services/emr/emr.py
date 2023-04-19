@@ -124,7 +124,7 @@ def add_job_flow_steps(session_client, id_cluster, endpoint, password, user, dat
             JobFlowId=id_cluster,
             Steps=[
                 {
-                    'Name': 'spark_stream_ind_mini_batch',
+                    'Name': 'spark_stream_etl',
                     'ActionOnFailure': 'CONTINUE',
                     'HadoopJarStep': {
                         'Jar': 'command-runner.jar',
