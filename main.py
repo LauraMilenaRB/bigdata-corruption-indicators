@@ -1,3 +1,9 @@
+"""
+Autores: Laura Milena Ramos Bermúdez y Juan Pablo Arevalo Merchán
+laura.ramos-b@mail.escuelaing.edu.co
+juan.arevalo-m@mail.escuelaing.edu.co
+"""
+
 from configparser import ConfigParser
 import json
 import boto3

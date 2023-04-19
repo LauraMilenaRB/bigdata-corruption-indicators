@@ -1,13 +1,15 @@
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-# SPDX-License-Identifier: MIT-0
+"""
+Autores: Laura Milena Ramos Bermúdez y Juan Pablo Arevalo Merchán
+laura.ramos-b@mail.escuelaing.edu.co
+juan.arevalo-m@mail.escuelaing.edu.co
+"""
+
 import logging
 import psycopg2
-
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.sensors.s3_key_sensor import S3KeySensor
 from airflow.hooks.S3_hook import S3Hook
-
 from airflow.providers.amazon.aws.sensors.emr import EmrStepSensor
 from airflow.providers.amazon.aws.operators.emr import EmrAddStepsOperator
 from airflow.providers.amazon.aws.operators.emr import EmrCreateJobFlowOperator

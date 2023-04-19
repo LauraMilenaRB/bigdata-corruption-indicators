@@ -1,5 +1,10 @@
-import subprocess
+"""
+Autores: Laura Milena Ramos Bermúdez y Juan Pablo Arevalo Merchán
+laura.ramos-b@mail.escuelaing.edu.co
+juan.arevalo-m@mail.escuelaing.edu.co
+"""
 
+import subprocess
 import psycopg2
 from pyspark.sql.functions import *
 from pyspark.sql import SparkSession

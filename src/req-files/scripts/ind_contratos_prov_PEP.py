@@ -1,11 +1,15 @@
-import logging
+"""
+Autores: Laura Milena Ramos Bermúdez y Juan Pablo Arevalo Merchán
+laura.ramos-b@mail.escuelaing.edu.co
+juan.arevalo-m@mail.escuelaing.edu.co
+"""
 
+import logging
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from datetime import datetime
 import pytz
 import argparse
-from datetime import date
 
 
 def get_data_frames(spark, list_source, date_origin):

@@ -1,10 +1,15 @@
+"""
+Autores: Laura Milena Ramos Bermúdez y Juan Pablo Arevalo Merchán
+laura.ramos-b@mail.escuelaing.edu.co
+juan.arevalo-m@mail.escuelaing.edu.co
+"""
+
 from datetime import date, datetime
 import json
 import random
 from configparser import ConfigParser
 import time
 import boto3
-import pytz
 
 config = ConfigParser()
 conf = json.load(open("src/config.conf"))
