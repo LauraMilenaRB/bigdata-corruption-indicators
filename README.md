@@ -156,7 +156,8 @@ Para poder desplegar la arquitectura propuesta se desarrollaron los componentes 
                * En este apartado hay muchas más variables que puede modificar, pero en este caso la configuración presentada es lo mínimo requerido para aprovisionar el servicio de EMR. 
                  <br>[Para más detalle dar clic aquí.](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/emr/client/run_job_flow.html)
             4. <br>![img_19.png](img/img_19.png)<br>
-               * **endpoint_conn_arg:** El host para conectarse a la base de datos de Amazon Redshift.
+               * **endpoint_conn_arg:** El host para conectarse a la base de datos de Amazon Redshift. Para ello busque el servicio Amazon Redshift, seleccione el cluster y en ***'Información general'*** copie el ***'Punto de enlace'*** como se muestra en la imagen: 
+                 <br>![img_49.png](img/img_49.png)<br>
                * **bd_name_arg:** El nombre de la base de datos de Amazon Redshift para crear la tabla a consultar por quicksight.
                * **user_db_arg:** El usuario de la base de datos de Amazon Redshift.
                * **psw_db_arg:** La contraseña de la base de datos de Amazon Redshift.
