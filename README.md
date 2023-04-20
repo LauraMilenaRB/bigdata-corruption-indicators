@@ -138,7 +138,7 @@ Para poder desplegar la arquitectura propuesta se desarrollaron los componentes 
     3. **IMPORTANTE:** Debe configurar algunas variables requeridas antes de abrir la interfaz de usuario de Airflow.
        1. Para configurar el DAG, edité los siguientes archivos:
           <br>![img_12.png](img/img_12.png)<br>
-          * **DAG-ContractingIndicators.py:** Contiene el código Python con el paso a paso de las tareas y servicios organizados para ejecutar.
+          * **DAG-ContractingIndicators.py:** Contiene el código Python con el paso a paso de las tareas y servicios organizados para ejecutar. Tenga en cuenta que este puede remplazarse de acuerdo a las necesidades del caso de uso.
           * **vars_emr_jobs.py:** Contiene las variables requeridas para el DAG.
             1. **endpoint_url_arg**: Diccionario de las URLs para descargar los archivos del nuestro caso de uso, Contratación Pública.
                <br>![img_16.png](img/img_16.png)<br>
