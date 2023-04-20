@@ -112,7 +112,7 @@ Para poder desplegar la arquitectura propuesta se desarrollaron los componentes 
       5. ***DDL_result_batch***: Sentencia SQL del DDL de la tabla de resultados batch.
       6. ***DDL_result_stream***: Sentencia SQL del DDL de la tabla de resultados streaming.
 
-6. Ejecute el Main principal y espere a que termine,
+6. Ejecute el Main principal y espere a que termine.
    1. Este script de python tiene las funciones de creación de S3 Buckets, Apache airflow, VPCs, Kinesis, Amazon EMR y Amazon Redshift.
       <br>![img_4.png](img/img_4.png)<br>
    2. Cuando lo ejecute verá en la terminal algo como esto: 
@@ -123,18 +123,16 @@ Para poder desplegar la arquitectura propuesta se desarrollaron los componentes 
    <br>![img_8.png](img/img_8.png)<br>
 8. Verifique la creación de la VPCs. Diríjase a CloudFormation en la consola de servicios de Amazon.
    <br>![img_9.png](img/img_9.png)<br>
-
 9. Verifique la creación del cluster de Amazon Redshift, para esto diríjase en la consola de servicios y busque Amazon Redshift. Luego de esto debe ver el cluster ***'Available'***.
    <br>![img_44.png](img/img_44.png)<br>
-   1. De clic en el cluster, luego en *'Datos de consulta'* > *Consulta en el editor de consultas v2*
+   1. De clic en el cluster, luego en ***'Datos de consulta'*** > ***'Consulta en el editor de consultas v2'***
    <br>![img_45.png](img/img_45.png)<br>
    2. Verifiqué que las tablas de resultados que haya definido en el conf se hayan creado correctamente.
    <br>![img_46.png](img/img_46.png)<br>
-   3. 
 10. Verifique la creación de Amazon MWAAA (Apache Airflow).
     1. Primero, verifique la creación de roles y políticas asociadas al servicio.
     <br>![img_10.png](img/img_10.png)<br>
-    <br>[img_27.png](img/img_27.png)<br>
+    <br>![img_27.png](img/img_27.png)<br>
     2. Luego verifique que el entorno de Airflow este en creación. Tenga en cuenta que la creación de este servicio puede demorar entre 30 minutos a 1 hora aproximadamente.
     <br>![img_11.png](img/img_11.png)<br>
     3. **IMPORTANTE:** Debe configurar algunas variables requeridas antes de abrir la interfaz de usuario de Airflow.
@@ -142,44 +140,47 @@ Para poder desplegar la arquitectura propuesta se desarrollaron los componentes 
           <br>![img_12.png](img/img_12.png)<br>
           * **DAG-ContractingIndicators.py:** Contiene el código Python con el paso a paso de las tareas y servicios organizados para ejecutar.
           * **vars_emr_jobs.py:** Contiene las variables requeridas para el DAG.
-            1. **endpoint_url_arg:** Diccionario de las URLs para descargar los archivos del nuestro caso de uso, Contratación Pública.
-            <br>![img_16.png](img/img_16.png)<br>
-            2. **ind_sources:** Contiene los datos fuentes requeridos para poder empezar a procesar cada uno de los indicadores de corrupción.
-            <br>![img_17.png](img/img_17.png)<br>
+            1. **endpoint_url_arg**: Diccionario de las URLs para descargar los archivos del nuestro caso de uso, Contratación Pública.
+               <br>![img_16.png](img/img_16.png)<br>
+            2. **ind_sources**: Contiene los datos fuentes requeridos para poder empezar a procesar cada uno de los indicadores de corrupción.
+               <br>![img_17.png](img/img_17.png)<br> 
             3. **JOB_FLOW_OVERRIDES:** Contiene toda la configuración para desplegar los clústeres de Spark para la ejecución de los ETLs y procesamientos.
+               <br>![img_18.png](img/img_18.png)<br>
                * **LogUri:** Modifique esta variable con el nombre del bucket que guardara los Logs del clúster
                * **Ec2SubnetId:** Apenas despliegue la VPC verifique las subnets privadas desplegadas y remplace el valor existente por el Id de la subnet que tiene como descripción ***'vpc-mwaa - EMR - Private Subnet (AZ3)'***.
-                 **NOTA IMPORTANTE**: Esta variable debe configurarse correctamente para que el servicio Amazon EMR se despliegue correctamente.
-                 <br>![img_28.png](img/img_28.png)<br>
-                 <br>![img_20.png](img/img_20.png)<br>
-               * **StepConcurrencyLevel:** Esta variable determina cuantos steps concurrentes se pueden ejecutar en los clúster de EMR.
-               * En este apartado hay muchas más variables que puede modificar, pero en este caso la configuración presentada es lo mínimo requerido para aprovisionar el servicio de EMR. Mas detalle https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/emr/client/run_job_flow.html
-               <br>![img_18.png](img/img_18.png)<br>
-            4. * **endpoint_conn_arg:** .
+                 <br>**NOTA IMPORTANTE**: Esta variable debe configurarse correctamente para que el servicio Amazon EMR se despliegue correctamente. 
+                 * Para ello busqué la consola de administración de las VPC y siga los pasos de las imágenes a continuación:
+                   <br>![img_28.png](img/img_28.png)<br>
+                   <br>![img_20.png](img/img_20.png)<br>
+               * **StepConcurrencyLevel:** Esta variable determina cuantos steps concurrentes se pueden ejecutar en el clúster de EMR.
+               * En este apartado hay muchas más variables que puede modificar, pero en este caso la configuración presentada es lo mínimo requerido para aprovisionar el servicio de EMR. 
+                 <br>[Para más detalle dar clic aquí.](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/emr/client/run_job_flow.html)
+            4. <br>![img_19.png](img/img_19.png)<br>
+               * **endpoint_conn_arg:** El host para conectarse a la base de datos de Amazon Redshift.
                * **bd_name_arg:** El nombre de la base de datos de Amazon Redshift para crear la tabla a consultar por quicksight.
                * **user_db_arg:** El usuario de la base de datos de Amazon Redshift.
                * **psw_db_arg:** La contraseña de la base de datos de Amazon Redshift.
                * **deleted_data_results:** La consulta para borrar los datos cargados en Amazon Redshift.
                * **insert_data_results:** La consulta para insertar datos en Amazon Redshift.
-               <br>![img_19.png](img/img_19.png)<br>
+               
        2. Luego de editar las variables requeridas diríjase al Bucket S3 donde se almacena el archivo DAG.py y renplacelo por la nueva configuración.
        <br>![img_29.png](img/img_29.png)<br>
-    4. Cuando se habilite el entorno y modifique las variables, puede dar clic en *'Abrir la interfaz de usuario de Airflow'*.
+    4. Cuando se habilite el entorno y modifique las variables, puede dar clic en ***'Abrir la interfaz de usuario de Airflow'***.
        * Si el DAG contiene algún error, verá algo como esto: ![img_13.png](img/img_13.png)
        * Si el DAG no contiene ningún error, verá algo como esto: ![img_14.png](img/img_14.png)
     5. Al dar clic en el DAG puede observar el detalle del flujo de datos. ![img_30.png](img/img_30.png)
-    6. Para iniciar el flujo debe dar clic en el botón *'Play'* solo si *'Next Run'* está configurado con una fecha futura, en dado caso que esté configurado con una fecha anterior a la actual solo debe habilitar el interruptor *'Pause/Unpause DAG'* que aparece en la esquina superior izquierda.
+    6. Para iniciar el flujo debe dar clic en el botón ***'Play'*** solo si ***'Next Run'*** está configurado con una fecha futura, en dado caso que esté configurado con una fecha anterior a la actual solo debe habilitar el interruptor *'Pause/Unpause DAG'* que aparece en la esquina superior izquierda.
        <br>![img_36.png](img/img_36.png)<br>
-    7. Verifique el estado del flujo en la opción de *'Graph'*. Verá algo como esto:
+    7. Verifique el estado del flujo en la opción de ***'Graph'***. Verá algo como esto:
        <br>![img_15.png](img/img_15.png)<br>
     8. Cuando el DAG se inicia el flujo de datos cambia de color de acuerdo a las convenciones definidas.
        <br>![img_21.png](img/img_21.png)<br>
-       1. Si en el flujo se presenta alguna falla, puede verificar el log dando clic sobre la tarea *'failed'* y luego dar clic en *'Log'*
+       1. Si en el flujo se presenta alguna falla, puede verificar el log dando clic sobre la tarea ***'failed'*** y luego dar clic en ***'Log'***
        <br>![img_31.png](img/img_31.png)<br>
        <br>![img_32.png](img/img_32.png)<br>
        2. También puede verificar los procesos batch en ejecución de spark buscando en la consola de servicios Amazon EMR.
        <br>![img_34.png](img/img_34.png)<br> <br>![img_35.png](img/img_35.png)<br>
-       Aquí debe verificar que todos los steps queden en estado *'Completado'*, en caso de que alguno falle puede validar el log correspondiente
+       Aquí debe verificar que todos los steps queden en estado ***'Completado'***, en caso de que alguno falle puede validar el log correspondiente
     9. Una de las ventajas de Airflow es que podemos personalizar la programación de los DAG en un horario definido y para nuestro caso de uso programamos el DAG a ejecutarse una vez por semana, cada domingo. 
       A continuación puede ver en calendario configurado:
       <br>![img_33.png](img/img_33.png)<br>
@@ -206,9 +207,9 @@ Luego de verificar el despliegue de la arquitectura batch puede verificar el des
 ### Visualizacion de datos
 
 1. Para validar los resultados y graficarlos vamos a la consola de Amazon QuickSight.
-    1. Seleccione y de clic en *'Conjunto de datos'* *'Nuevo conjunto de datos'*.
+    1. Seleccione y de clic en ***'Conjunto de datos'*** > ***'Nuevo conjunto de datos'***.
        <br>![img_38.png](img/img_38.png)<br>
-    2. Luego busque la opción *'Redshift' (Detección automática)*, agregue los datos solicitados y haga clic en *'Crear origen de datos'*.
+    2. Luego busque la opción ***'Redshift' (Detección automática)***, agregue los datos solicitados y haga clic en ***'Crear origen de datos'***.
        <br>![img_37.png](img/img_37.png)<br>
     3. Ya con este paso realizado podemos realizar la creación de las gráficas requeridas para visualizar y entender de una manera grafica el comportamiento de los datos.
        <br>![img_39.png](img/img_39.png)<br>

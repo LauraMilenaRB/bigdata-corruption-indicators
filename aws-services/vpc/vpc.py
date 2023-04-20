@@ -169,6 +169,33 @@ def get_vpc_id(stack_vpc_name, session_client, vpcCIDR):
         return resp
 
 
+def get_private_subnets_id(vpc_id, session_client):
+    """Obtener id de subredes de la vpc
+
+    @param vpc_id:
+    @param session_client:
+    @return: True si ..., si no False
+    """
+    try:
+        client = session_client.client('ec2')
+        response = client.describe_subnets(
+            Filters=[{"Name": "vpc-id", "Values": [vpc_id]}]
+        )
+        resp = response['Subnets']
+        tmp = []
+        for i in resp:
+            if "PrivateSubnet" in str(i):
+                tmp.append(i.get("SubnetId"))
+        if resp:
+            print(tmp)
+        else:
+            print('No subnets found')
+    except ClientError as e:
+        logging.error(e)
+        return False
+    return tmp
+
+
 def get_security_group_id(vpc_id, session_client):
     """Obtener id de grupos de seguridad de la vpc
 

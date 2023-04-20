@@ -12,7 +12,7 @@ import iam
 
 
 def create_roles_default_redshift(session_client, redshift_name):
-    """Create a role default redshift
+    """Creación rol default Redshift
     
     @param redshift_name: 
     @param session_client: object
@@ -38,14 +38,14 @@ def create_roles_default_redshift(session_client, redshift_name):
         logging.error(e)
         return False
     else:
-        print("Creating role default redshift...")
+        print("Creando rol default redshift...")
         time.sleep(10)
-        print("Created role default redshift con éxito")
+        print("Creado rol default redshift con éxito")
         return True
 
 
 def create_redshift_serverless(session_client, redshift_name):
-    """Create a role execution environment for MWAA
+    """Creación cluster Redshift Serverless
 
     @param redshift_name: 
     @param session_client:
@@ -67,14 +67,14 @@ def create_redshift_serverless(session_client, redshift_name):
         logging.error(e)
         return False
     else:
-        print("Creating redshift...")
-        time.sleep(10)
-        print("Created redshift con éxito")
+        print("Creando serverless redshift...")
+        time.sleep(130)
+        print("Creado serverless redshift con éxito")
         return True
 
 
 def create_redshift_cluster(session_client, redshift_name, password_db, username_db, name_bd):
-    """Create a role execution environment for MWAA
+    """Creación cluster Redshift
     
     @param name_bd: 
     @param username_db: 
@@ -106,9 +106,9 @@ def create_redshift_cluster(session_client, redshift_name, password_db, username
         logging.error(e)
         return False
     else:
-        print("Creating redshift...")
+        print("Creando cluster redshift...")
         time.sleep(130)
-        print("Created redshift con éxito")
+        print("Creado cluster redshift con éxito")
         return response
 
 
