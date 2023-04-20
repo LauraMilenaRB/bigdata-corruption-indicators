@@ -193,7 +193,7 @@ def deleted_roles_default_redshift(session_client, redshift_name):
         return False
     else:
         print(f"Eliminando roles default redshift {redshift_name}...")
-        time.sleep(10)
+        time.sleep(20)
         print(f"Eliminado cluster redshift {redshift_name} con éxito")
         return True
 

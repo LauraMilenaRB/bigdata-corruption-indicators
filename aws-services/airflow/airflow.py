@@ -182,7 +182,7 @@ def deleted_mwaa_evn(evn_name, session_client):
         logging.error(e)
         return False
     else:
-        time.sleep(60)
+        time.sleep(180)
         print(f"Eliminado el entorno de Amazon MWAA {evn_name} con éxito")
         return True
 

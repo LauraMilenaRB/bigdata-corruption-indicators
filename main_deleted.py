@@ -50,22 +50,21 @@ def deleted_vpc():
     print("**********************************************************\n"
           "*                        VPCs                            *\n"
           "**********************************************************")
-    vpc.deleted_stack_template_vpc(session, vpc_name)
     vpc.deleted_default_vpc(session)
+    vpc.deleted_stack_template_vpc(session, vpc_name)
 
 
 def deleted_airflow():
     print("**********************************************************\n"
           "*                    Amazon MWAA                         *\n"
           "**********************************************************")
-
     airflow.deleted_mwaa_evn(evn_name, session)
     airflow.deleted_rol_execution_evn(session, evn_name)
 
 
 def deleted_kinesis_stream():
     print("**********************************************************\n"
-          "*                Stream Data Flow                        *\n"
+          "*                   Amazon Kinesis                       *\n"
           "**********************************************************")
 
     kinesis.delete_stream_kinesis(session, kinesis_stream_name)
@@ -75,7 +74,7 @@ def deleted_kinesis_stream():
 
 def deleted_redshift():
     print("**********************************************************\n"
-          "*                      Readshift                         *\n"
+          "*                   Amazon Readshift                     *\n"
           "**********************************************************")
     redshift.deleted_roles_default_redshift(session, redshift_name_cluster)
     redshift.deleted_cluster_redshift(session, redshift_name_cluster)
