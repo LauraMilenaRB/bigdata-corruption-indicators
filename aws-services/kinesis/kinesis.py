@@ -11,7 +11,7 @@ import iam
 
 
 def create_stream_kinesis(session_client, kinesis_stream_name):
-    """Creación stream kinesis
+    """Creación elasticmapreduce_streaming kinesis
 
     @param session_client:
     @param kinesis_stream_name:
@@ -29,9 +29,9 @@ def create_stream_kinesis(session_client, kinesis_stream_name):
         logging.error(e)
         return False
     else:
-        print(f"Creando stream kinesis {kinesis_stream_name}...")
+        print(f"Creando elasticmapreduce_streaming kinesis {kinesis_stream_name}...")
         time.sleep(10)
-        print(f"Creado stream kinesis {kinesis_stream_name} con éxito")
+        print(f"Creado elasticmapreduce_streaming kinesis {kinesis_stream_name} con éxito")
         return True
 
 
@@ -53,14 +53,14 @@ def delete_stream_kinesis(session_client, kinesis_stream_name):
         logging.error(e)
         return False
     else:
-        print(f"Eliminando stream kinesis {kinesis_stream_name}...")
+        print(f"Eliminando elasticmapreduce_streaming kinesis {kinesis_stream_name}...")
         time.sleep(5)
-        print(f"Eliminado stream kinesis {kinesis_stream_name} con éxito")
+        print(f"Eliminado elasticmapreduce_streaming kinesis {kinesis_stream_name} con éxito")
         return True
 
 
 def delete_delivery_stream_kinesis(session_client, kinesis_delivery_stream_name):
-    """Eliminación delivery stream kinesis
+    """Eliminación delivery elasticmapreduce_streaming kinesis
 
     @param kinesis_delivery_stream_name:
     @param session_client:
@@ -76,9 +76,9 @@ def delete_delivery_stream_kinesis(session_client, kinesis_delivery_stream_name)
         logging.error(e)
         return False
     else:
-        print(f"Eliminando delivery stream kinesis {kinesis_delivery_stream_name}...")
+        print(f"Eliminando delivery elasticmapreduce_streaming kinesis {kinesis_delivery_stream_name}...")
         time.sleep(60)
-        print(f"Eliminado delivery stream kinesis {kinesis_delivery_stream_name} con éxito")
+        print(f"Eliminado delivery elasticmapreduce_streaming kinesis {kinesis_delivery_stream_name} con éxito")
         return True
 
 
@@ -110,9 +110,9 @@ def create_role_kinesis(session_client, kinesis_delivery_stream_name):
         logging.error(e)
         return False
     else:
-        print(f"Creando rol delivery stream kinesis {kinesis_delivery_stream_name}...")
+        print(f"Creando rol delivery elasticmapreduce_streaming kinesis {kinesis_delivery_stream_name}...")
         time.sleep(10)
-        print(f"Creado role delivery stream kinesis {kinesis_delivery_stream_name} con éxito")
+        print(f"Creado role delivery elasticmapreduce_streaming kinesis {kinesis_delivery_stream_name} con éxito")
         return True
 
 
@@ -136,15 +136,15 @@ def deleted_role_kinesis(session_client, kinesis_delivery_stream_name):
         logging.error(e)
         return False
     else:
-        print("Eliminando rol para delivery stream kinesis...")
+        print("Eliminando rol para delivery elasticmapreduce_streaming kinesis...")
         time.sleep(5)
-        print("Eliminado role delivery stream kinesis con éxito")
+        print("Eliminado role delivery elasticmapreduce_streaming kinesis con éxito")
         return True
 
 
 def create_delivery_stream_kinesis(session_client, kinesis_delivery_stream_name, kinesis_stream_name,
                                    s3_output_destination, key_staging_bucket, column_partition_key):
-    """Creación del servicio delivery stream kinesis
+    """Creación del servicio delivery elasticmapreduce_streaming kinesis
 
     @param session_client:
     @param kinesis_delivery_stream_name:
@@ -163,7 +163,7 @@ def create_delivery_stream_kinesis(session_client, kinesis_delivery_stream_name,
             DeliveryStreamName=kinesis_delivery_stream_name,
             DeliveryStreamType='KinesisStreamAsSource',
             KinesisStreamSourceConfiguration={
-                'KinesisStreamARN': f"arn:aws:kinesis:{session_client.region_name}:{account_id}:stream/{kinesis_stream_name}",
+                'KinesisStreamARN': f"arn:aws:kinesis:{session_client.region_name}:{account_id}:elasticmapreduce_streaming/{kinesis_stream_name}",
                 'RoleARN': f'arn:aws:iam::{account_id}:role/{role_name}'
             },
             ExtendedS3DestinationConfiguration={
@@ -209,7 +209,7 @@ def create_delivery_stream_kinesis(session_client, kinesis_delivery_stream_name,
         logging.error(e)
         return False
     else:
-        print("Creando delivery stream kinesis...")
+        print("Creando delivery elasticmapreduce_streaming kinesis...")
         time.sleep(60)
-        print("Creado delivery stream kinesis con éxito")
+        print("Creado delivery elasticmapreduce_streaming kinesis con éxito")
         return True

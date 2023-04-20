@@ -6,6 +6,8 @@ juan.arevalo-m@mail.escuelaing.edu.co
 
 from configparser import ConfigParser
 import json
+from datetime import date
+
 import boto3
 import buckets
 import kinesis
@@ -94,7 +96,7 @@ def create_apache_airflow():
     airflow.create_mwaa_evn(evn_name, bucket_dag_prefix, session, sec_group, subnets_id[1:])
 
 
-def create_streams_kinesis():
+def create_streaming_kinesis():
     print("**********************************************************\n"
           "*                  Amazon Kinesis                        *\n"
           "**********************************************************")
@@ -106,14 +108,14 @@ def create_streams_kinesis():
                                            column_partition_output_staging_zone)
 
 
-def create_streams_emr():
+def create_streaming_emr():
     print("**********************************************************\n"
           "*                     Amazon EMR                         *\n"
           "**********************************************************")
 
     emr.create_roles_default_emr(session)
     vpc_ids = vpc.get_vpc_id(vpc_name, session, conf.get("variables_vpc").get("vpcCIDR"))
-    subnets_id = vpc.get_private_subnets_id(vpc_ids, session)
+    subnets_id = vpc.get_public_subnets_id(vpc_ids, session)
 
     client = session.client('redshift')
     cluster_list = client.describe_clusters().get('Clusters')[0]
@@ -123,6 +125,8 @@ def create_streams_emr():
     emr.run_job_flow_emr(session, emr_stream_name, concurrent_steps, s3_logs_output, subnets_id[0])
     id_cluster = emr.get_id_job_flow_emr(session, emr_stream_name)
     emr.add_job_flow_steps(session, id_cluster, endpoint, password_bd_redshift, user_bd_redshift, name_bd_redshift)
+    date_today_init = date.today().isoformat()
+    buckets.put_object_s3(f"test-pgr-staging-zone", f't_streaming_contracts/{date_today_init}/', session)
 
 
 def create_service_redshift():
@@ -152,11 +156,12 @@ def create_tables_redshift():
 
 if __name__ == '__main__':
     #create_update_buckets()
-    #create_service_redshift()
-    #create_vpc_subnets()
-    #create_apache_airflow()
-    #create_streams_kinesis()
-    create_streams_emr()
+    create_service_redshift()
+    create_vpc_subnets()
+    create_apache_airflow()
+    create_streaming_kinesis()
     create_tables_redshift()
+    create_streaming_emr()
+
 
 

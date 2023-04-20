@@ -119,8 +119,7 @@ Para poder desplegar la arquitectura propuesta se desarrollaron los componentes 
       <br>![img.png](img/img_2.png)<br>
 
 7. Verifique la creación de los buckets, carpetas y carga de archivos correspondientes en la consola de servicios de Amazon S3, este proceso puede demorar un poco si se suben archivos locales.
-   <br>![img_7.png](img/img_7.png)<br>
-   <br>![img_8.png](img/img_8.png)<br>
+   <br>![img_7.png](img/img_7.png)<br>![img_8.png](img/img_8.png)<br>
 8. Verifique la creación de la VPCs. Diríjase a CloudFormation en la consola de servicios de Amazon.
    <br>![img_9.png](img/img_9.png)<br>
 9. Verifique la creación del cluster de Amazon Redshift, para esto diríjase en la consola de servicios y busque Amazon Redshift. Luego de esto debe ver el cluster ***'Available'***.
@@ -131,8 +130,7 @@ Para poder desplegar la arquitectura propuesta se desarrollaron los componentes 
    <br>![img_46.png](img/img_46.png)<br>
 10. Verifique la creación de Amazon MWAAA (Apache Airflow).
     1. Primero, verifique la creación de roles y políticas asociadas al servicio.
-    <br>![img_10.png](img/img_10.png)<br>
-    <br>![img_27.png](img/img_27.png)<br>
+    <br>![img_10.png](img/img_10.png)<br>![img_27.png](img/img_27.png)<br>
     2. Luego verifique que el entorno de Airflow este en creación. Tenga en cuenta que la creación de este servicio puede demorar entre 30 minutos a 1 hora aproximadamente.
     <br>![img_11.png](img/img_11.png)<br>
     3. **IMPORTANTE:** Debe configurar algunas variables requeridas antes de abrir la interfaz de usuario de Airflow.
@@ -150,8 +148,7 @@ Para poder desplegar la arquitectura propuesta se desarrollaron los componentes 
                * **Ec2SubnetId:** Apenas despliegue la VPC verifique las subnets privadas desplegadas y remplace el valor existente por el Id de la subnet que tiene como descripción ***'vpc-mwaa - EMR - Private Subnet (AZ3)'***.
                  <br>**NOTA IMPORTANTE**: Esta variable debe configurarse correctamente para que el servicio Amazon EMR se despliegue correctamente. 
                  * Para ello busqué la consola de administración de las VPC y siga los pasos de las imágenes a continuación:
-                   <br>![img_28.png](img/img_28.png)<br>
-                   <br>![img_20.png](img/img_20.png)<br>
+                   <br>![img_28.png](img/img_28.png)<br>![img_20.png](img/img_20.png)<br>
                * **StepConcurrencyLevel:** Esta variable determina cuantos steps concurrentes se pueden ejecutar en el clúster de EMR.
                * En este apartado hay muchas más variables que puede modificar, pero en este caso la configuración presentada es lo mínimo requerido para aprovisionar el servicio de EMR. 
                  <br>[Para más detalle dar clic aquí.](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/emr/client/run_job_flow.html)
@@ -177,16 +174,15 @@ Para poder desplegar la arquitectura propuesta se desarrollaron los componentes 
     8. Cuando el DAG se inicia el flujo de datos cambia de color de acuerdo a las convenciones definidas.
        <br>![img_21.png](img/img_21.png)<br>
        1. Si en el flujo se presenta alguna falla, puede verificar el log dando clic sobre la tarea ***'failed'*** y luego dar clic en ***'Log'***
-       <br>![img_31.png](img/img_31.png)<br>
-       <br>![img_32.png](img/img_32.png)<br>
+       <br>![img_31.png](img/img_31.png)<br>![img_32.png](img/img_32.png)<br>
        2. También puede verificar los procesos batch en ejecución de spark buscando en la consola de servicios Amazon EMR.
-       <br>![img_34.png](img/img_34.png)<br> <br>![img_35.png](img/img_35.png)<br>
+       <br>![img_34.png](img/img_34.png)<br>![img_35.png](img/img_35.png)<br>
        Aquí debe verificar que todos los steps queden en estado ***'Completado'***, en caso de que alguno falle puede validar el log correspondiente
     9. Una de las ventajas de Airflow es que podemos personalizar la programación de los DAG en un horario definido y para nuestro caso de uso programamos el DAG a ejecutarse una vez por semana, cada domingo. 
       A continuación puede ver en calendario configurado:
       <br>![img_33.png](img/img_33.png)<br>
     10. Espere a que se complete todo el flujo de datos y verifique la creación de la tabla de resultados en Redshift.
-      <br>![img_37.png](img/img_37.png)<br>
+      <br>![img_37.png](img/img_50.png)<br>
 
 ### Para streaming
 
@@ -210,14 +206,24 @@ Luego de verificar el despliegue de la arquitectura batch puede verificar el des
 1. Para validar los resultados y graficarlos vamos a la consola de Amazon QuickSight.
     1. Seleccione y de clic en ***'Conjunto de datos'*** > ***'Nuevo conjunto de datos'***.
        <br>![img_38.png](img/img_38.png)<br>
-    2. Luego busque la opción ***'Redshift' (Detección automática)***, agregue los datos solicitados y haga clic en ***'Crear origen de datos'***.
+    2. Luego busque la opción ***'Redshift' (Manual)***, agregue los datos solicitados y haga clic en ***'Crear origen de datos'***.
        <br>![img_37.png](img/img_37.png)<br>
-    3. Ya con este paso realizado podemos realizar la creación de las gráficas requeridas para visualizar y entender de una manera grafica el comportamiento de los datos.
-       <br>![img_39.png](img/img_39.png)<br>
-    4. Aquí puede configurar y usar otras herramientas de BI como Power BI, Tableau o Microstrategy utilizando los valores típicos de conexión a una base de datos. El host, nombre de la base de datos, usuario y contraseña.
+    3. Seleccione la tabla que desea cargar. 
+       <br>![img_52.png](img/img_52.png)<br>
+    4. Seleccione ***'Realizar una consulta directamente sobre los datos'*** > ***'Visualize'*** > ***'CREAR'***. 
+       <br>![img_53.png](img/img_53.png)<br>![img_54.png](img/img_54.png)<br>
+    5. Realice nuevamente del paso 1 al 4 para la tabla streaming. 
+       <br>![img_55.png](img/img_55.png)<br>
+    6. Debe visualizar los dos conjuntos de datos. 
+       <br>![img_56.png](img/img_56.png)<br>
+    7. Ya con esos conjuntos de datos creados puede hacer un análisis y realizar las gráficas para visualizar y entender los datos.
+       <br>![img_39.png](img/img_39.png)<br>![img_58.png](img/img_58.png)<br>
+    8. Ya con el análisis realizado puede publicar el panel, para esto entre al análisis y busqué el icono de compartir completé el nombre del panel y clic en ***'Publicar panel'***.
+       <br>![img_57.png](img/img_57.png)<br>![img_59.png](img/img_59.png)<br>
+    9. Gracias a Amazon Redshift puede configurar y usar otras herramientas de BI como Power BI, Tableau o Microstrategy utilizando el host, puerto, nombre de la base de datos, usuario y contraseña.
        <br>![img_40.png](img/img_40.png)<br>
 
 ### Eliminacion de recursos y servicios en AWS
 1. Luego de utilizar la arquitectura es necesario limpiar nuestro espacio de trabajo para ahorrar costos, para la eliminación de politicas, roles, servicios y recursos de la arquitectura debe ejecutar el main_deleted.
    <br>![img_48.png](img/img_48.png)<br>
-2. Verifique todos los servicios, roles y políticas utilizadas y cerciórese de que están eliminados.
+2. Cerciórese que se hayan eliminado todos los servicios, roles y políticas utilizadas.

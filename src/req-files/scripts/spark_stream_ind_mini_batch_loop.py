@@ -204,8 +204,8 @@ def ind_inhabilitados_obras_inconclusas(dfPCObraInco, date_data, df):
         max("timestamp").alias("fecha_ejecucion"))
 
     dfEscritura42 = df42.select(col("id_no_contrato"),
-                                lit("Indicadores por inhabilidad").alias("nombre_grupo_indicador"),
-                                lit("Inhabilitados por obras inconclusas").alias("nombre_indicador"),
+                                lit("indicadores por inhabilidad").alias("nombre_grupo_indicador"),
+                                lit("inhabilitados por obras inconclusas").alias("nombre_indicador"),
                                 when(col("count") >= 1, lit("Si")).otherwise(lit("No")).alias(
                                     "tipo_alerta_irregularidad"),
                                 col("monto_contrato"),
@@ -230,8 +230,8 @@ def ind_inhabilitados_resp_fiscal(dfRespFis, date_data, df):
         max("timestamp").alias("fecha_ejecucion"))
 
     dfEscritura43 = df43.select(col("id_no_contrato"),
-                                lit("Indicadores por inhabilidad").alias("nombre_grupo_indicador"),
-                                lit("Inhabilitados por responsabilidad fiscal").alias("nombre_indicador"),
+                                lit("iIndicadores por inhabilidad").alias("nombre_grupo_indicador"),
+                                lit("inhabilitados por responsabilidad fiscal").alias("nombre_indicador"),
                                 when(col("count") >= 1, lit("Si")).otherwise(lit("No")).alias(
                                     "tipo_alerta_irregularidad"),
                                 col("monto_contrato"),
@@ -264,7 +264,7 @@ def parse_arguments():
 
 
 def main():
-    spark = SparkSession.builder.appName('master-stream').getOrCreate()
+    spark = SparkSession.builder.appName('master-elasticmapreduce_streaming').getOrCreate()
     spark.sql("set spark.sql.streaming.schemaInference=true")
 
     pyspark_args = parse_arguments()

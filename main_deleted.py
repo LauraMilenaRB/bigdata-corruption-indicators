@@ -33,6 +33,7 @@ emr_stream_name = conf.get("variables_stream_emr").get("emr_stream_name")
 
 redshift_name_cluster = conf.get("variables_redshift").get("redshift_name_cluster")
 
+
 def deleted_buckets():
     print("**********************************************************\n"
           "*                      Buckets                           *\n"

@@ -56,6 +56,25 @@ def upload_file(file_name, bucket, object_name, session_client):
         return True
 
 
+def put_object_s3(bucket_name, folder_name, session_client):
+    """Subir un folder a un depósito S3
+
+    @param session_client: Sesión AWS
+    @param bucket_name: Nombre del bucket actualizar
+    @param folder_name: Nombre del objeto S3. Si no se especifica, se utiliza file_name
+    @return: True si el archivo en el bucket se actualiza, si no False
+    """
+    try:
+        s3_client = session_client.client('s3')
+        response = s3_client.put_object(Bucket=bucket_name, Key=folder_name)
+    except ClientError as e:
+        logging.error(e)
+        return False
+    else:
+        print(f"Folder {bucket_name}/{folder_name} subido con éxito")
+        return True
+
+
 def put_public_access_block(bucket, session_client):
     """Poner bloque de acceso público al depósito S3
 

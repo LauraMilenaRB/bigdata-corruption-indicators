@@ -11,6 +11,8 @@ from configparser import ConfigParser
 import time
 import boto3
 
+import buckets
+
 config = ConfigParser()
 conf = json.load(open("src/config.conf"))
 
@@ -19,6 +21,7 @@ session = boto3.Session(profile_name='default')
 kinesis_stream_name = conf.get("variables_kinesis").get("kinesis_stream_name")
 
 session = boto3.Session(profile_name='default')
+date_today_init = date.today().isoformat()
 
 
 def get_data(count):
@@ -53,7 +56,7 @@ def generate(stream_name):
             Data=json.dumps(data),
             PartitionKey=f'test-{random_range}')
         count += 1
-        time.sleep(15)
+        time.sleep(20)
 
 
 if __name__ == '__main__':

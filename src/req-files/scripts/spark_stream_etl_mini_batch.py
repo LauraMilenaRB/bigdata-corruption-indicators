@@ -26,7 +26,7 @@ def parse_arguments():
 
 
 def main():
-    spark = SparkSession.builder.appName('raw-stream').getOrCreate()
+    spark = SparkSession.builder.appName('raw-elasticmapreduce_streaming').getOrCreate()
     spark.sql("set spark.sql.streaming.schemaInference=true")
     schema = StructType(
         [StructField("event_date", DateType(), True),
@@ -49,9 +49,10 @@ def main():
     while True:
         date_data = datetime.now(pytz.timezone('America/Bogota')).date().isoformat()
         data_source = spark.read.schema(schema).json(f"s3://test-pgr-staging-zone/t_streaming_contracts/{date_data}/")
-        print(f"Read text s3://test-pgr-staging-zone/t_streaming_contracts/{date_data}/")
-        data_source.write.mode("overwrite").parquet(f"s3://test-pgr-raw-zone/t_streaming_contracts/{date_data}")
-        subprocess.run(command, shell=True)
+        if data_source.count() != 0:
+            print(f"Read text s3://test-pgr-staging-zone/t_streaming_contracts/{date_data}/")
+            data_source.write.mode("overwrite").parquet(f"s3://test-pgr-raw-zone/t_streaming_contracts/{date_data}")
+            subprocess.run(command, shell=True)
         time.sleep(90)
 
 

@@ -12,7 +12,7 @@ import pytz
 
 
 def main():
-    spark = SparkSession.builder.config("spark.streaming.concurrentJobs", "8").appName('raw-stream').getOrCreate()
+    spark = SparkSession.builder.config("spark.streaming.concurrentJobs", "8").appName('raw-elasticmapreduce_streaming').getOrCreate()
     spark.sql("set spark.sql.streaming.schemaInference=true")
     date_data = datetime.now(pytz.timezone('America/Bogota')).date().isoformat()
     schema = StructType(

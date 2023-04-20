@@ -266,7 +266,7 @@ def parse_arguments():
 
 
 def main():
-    spark = SparkSession.builder.config("spark.streaming.concurrentJobs", "8").appName('master-stream').getOrCreate()
+    spark = SparkSession.builder.config("spark.streaming.concurrentJobs", "8").appName('master-elasticmapreduce_streaming').getOrCreate()
     spark.sql("set spark.sql.streaming.schemaInference=true")
 
     pyspark_args = parse_arguments()

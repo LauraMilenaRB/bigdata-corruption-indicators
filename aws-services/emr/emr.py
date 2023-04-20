@@ -53,7 +53,7 @@ def deleted_roles_default_emr(session_client):
         time.sleep(5)
         iam.detach_role_policy_aws(session_client, f'service-role/AmazonElasticMapReduceforEC2Role', 'EMR_EC2_DefaultRole')
         time.sleep(5)
-        iam.detach_role_policy_aws(session_client, f'EMR_policy_AddJobStep', 'EMR_EC2_DefaultRole')
+        iam.detach_role_policy(session_client, f'EMR_policy_AddJobStep', 'EMR_EC2_DefaultRole')
         time.sleep(5)
         iam.remove_role_from_instance_profile(session_client, 'EMR_EC2_DefaultRole', 'EMR_EC2_DefaultRole')
         iam.delete_role(session_client, f'EMR_EC2_DefaultRole')
@@ -139,7 +139,7 @@ def add_job_flow_steps(session_client, id_cluster, endpoint, password, user, dat
                     'HadoopJarStep': {
                         'Jar': 'command-runner.jar',
                         'Args': ['spark-submit', '--master', 'yarn',
-                                 '--deploy-mode', 'client', f's3://test-pgr-req-files/scripts/spark_stream_etl_mini_batch_loop.py',
+                                 '--deploy-mode', 'client', f's3://test-pgr-req-files/scripts/spark_stream_etl_mini_batch.py',
                                  '--endpoint', endpoint, '--pwd', password, '--user', user, '--db', database, '--id_cluster', id_cluster
                                  ]
                     }
@@ -169,7 +169,7 @@ def run_job_flow_emr(session_client, emr_stream_name, concurrent_step, s3_logs_o
         response = client.run_job_flow(
             Name=emr_stream_name,
             ReleaseLabel='emr-5.36.0',
-            LogUri=f's3://{s3_logs_output}/elasticmapreduce/streaming/',
+            LogUri=f's3://{s3_logs_output}/elasticmapreduce_streaming/',
             Instances={
                 'InstanceGroups': [
                     {
