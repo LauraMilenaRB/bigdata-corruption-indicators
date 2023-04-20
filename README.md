@@ -216,14 +216,14 @@ Luego de verificar el despliegue de la arquitectura batch puede verificar el des
        <br>![img_55.png](img/img_55.png)<br>
     6. Debe visualizar los dos conjuntos de datos. 
        <br>![img_56.png](img/img_56.png)<br>
-    7. Ya con esos conjuntos de datos creados puede hacer un análisis y realizar las gráficas para visualizar y entender los datos.
+    7. Con los conjuntos de datos creados puede hacer un análisis y realizar las gráficas para visualizar y entender los datos.
        <br>![img_39.png](img/img_39.png)<br>![img_58.png](img/img_58.png)<br>
-    8. Ya con el análisis realizado puede publicar el panel, para esto entre al análisis y busqué el icono de compartir completé el nombre del panel y clic en ***'Publicar panel'***.
+    8. Con el análisis realizado puede publicar el panel, para esto entre al análisis y busqué el icono de compartir completé el nombre del panel y clic en ***'Publicar panel'***.
        <br>![img_57.png](img/img_57.png)<br>![img_59.png](img/img_59.png)<br>
-    9. Gracias a Amazon Redshift puede configurar y usar otras herramientas de BI como Power BI, Tableau o Microstrategy utilizando el host, puerto, nombre de la base de datos, usuario y contraseña.
+    9. Además, gracias a Amazon Redshift puede configurar y usar otras herramientas de BI como Power BI, Tableau o Microstrategy utilizando el host, puerto, nombre de la base de datos, usuario y contraseña.
        <br>![img_40.png](img/img_40.png)<br>
 
 ### Eliminacion de recursos y servicios en AWS
-1. Luego de utilizar la arquitectura es necesario limpiar nuestro espacio de trabajo para ahorrar costos, para la eliminación de politicas, roles, servicios y recursos de la arquitectura debe ejecutar el main_deleted.
+1. Luego de utilizar la arquitectura es necesario limpiar nuestro espacio de trabajo para ahorrar costos, para la eliminación de políticas, roles, servicios y recursos de la arquitectura debe ejecutar el main_deleted.
    <br>![img_48.png](img/img_48.png)<br>
-2. Cerciórese que se hayan eliminado todos los servicios, roles y políticas utilizadas.
+2. Cerciórese que se hayan eliminado todos los servicios, roles y políticas utilizadas para no incurrir en gastos adicionales.
