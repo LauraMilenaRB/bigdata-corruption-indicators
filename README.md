@@ -11,7 +11,7 @@ juan.arevalo-m@mail.escuelaing.edu.co<br>
 
 
 ## Tabla de contenidos
-1. [Video de resumen](#arquitectura-propuesta-en-aws)
+1. [Video de la arquitectura propuesta en AWS](#video-de-la-arquitectura-propuesta-en-aws)
 2. [Arquitectura propuesta en AWS](#arquitectura-propuesta-en-aws)
 3. [Instalación](#instalacion)
 4. [Manual de uso](#manual-de-uso)
@@ -19,11 +19,8 @@ juan.arevalo-m@mail.escuelaing.edu.co<br>
    2. [Para streaming](#para-streaming)
    3. [Visualización de datos](#visualizacion-de-datos)
 
-## Video de resumen
+## Video de la arquitectura propuesta en AWS
 [![img.png](img/img.png)](http://www.youtube.com/watch?v=aN7xFw2ZJv4 "Video Title")
-
-## Arquitectura propuesta en AWS
-<br>![img.png](img/img.png)<br>
 
 ## Instalacion
 Para poder desplegar la arquitectura propuesta se desarrollaron los componentes requeridos con la siguiente estructura:
