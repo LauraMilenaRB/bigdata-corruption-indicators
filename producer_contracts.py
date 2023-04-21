@@ -10,6 +10,7 @@ import random
 from configparser import ConfigParser
 import time
 import boto3
+import pytz
 
 import buckets
 
@@ -26,7 +27,7 @@ date_today_init = date.today().isoformat()
 
 def get_data(count):
     return {
-        'event_date': date.today().isoformat(),
+        'event_date': datetime.now(pytz.timezone('America/Bogota')).date().isoformat(),
         'event_time': datetime.now().strftime("%H%M%S"),
         'id_no_contrato': f"CO1.REQ.{str(count).zfill(7)}",
         'id_nit_entidad': str(random.choice(['899999034', '800117801', '800007652' , '890981391', '899999098', str(random.randrange(0, 900000000)).zfill(9)])),

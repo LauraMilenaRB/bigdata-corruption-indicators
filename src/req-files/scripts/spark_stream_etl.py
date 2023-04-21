@@ -14,6 +14,7 @@ import pytz
 def main():
     spark = SparkSession.builder.config("spark.streaming.concurrentJobs", "8").appName('raw-elasticmapreduce_streaming').getOrCreate()
     spark.sql("set spark.sql.streaming.schemaInference=true")
+    spark.conf.set('spark.sql.sources.partitionOverwriteMode', 'dynamic')
     date_data = datetime.now(pytz.timezone('America/Bogota')).date().isoformat()
     schema = StructType(
         [StructField("event_date", DateType(), True),

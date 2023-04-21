@@ -5,10 +5,12 @@ juan.arevalo-m@mail.escuelaing.edu.co
 """
 
 import logging
+
+import pytz
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 import argparse
-from datetime import date
+from datetime import date, datetime
 
 
 def transform_data(spark, key, date_origin, source_bucket, destination_bucket):
@@ -16,7 +18,7 @@ def transform_data(spark, key, date_origin, source_bucket, destination_bucket):
 
     data_source = spark.read.option("header", True).csv(f"s3://{source_bucket}/origen/responsabilidades_fiscales.csv")
 
-    date_data = date.today()
+    date_data = datetime.now(pytz.timezone('America/Bogota')).date().isoformat()
     data_transform = data_source.select(
         col("Responsable Fiscal").alias("nombre_responsable_fiscal"),
         col("Tipo y Num Docuemento").alias("id_responsable_fiscal"),
@@ -48,6 +50,7 @@ def main():
     pyspark_args = parse_arguments()
     print(pyspark_args.staging_bucket, pyspark_args.raw_bucket, pyspark_args.app_name)
     spark = SparkSession.builder.appName(pyspark_args.app_name).getOrCreate()
+    spark.conf.set('spark.sql.sources.partitionOverwriteMode', 'dynamic')
     transform_data(spark, key=pyspark_args.key, date_origin=pyspark_args.date_origin,
                    source_bucket=pyspark_args.staging_bucket,
                    destination_bucket=pyspark_args.raw_bucket

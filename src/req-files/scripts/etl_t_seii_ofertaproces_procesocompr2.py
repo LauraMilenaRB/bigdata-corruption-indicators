@@ -13,7 +13,7 @@ from datetime import date
 
 def transform_data(spark, key, date_origin, source_bucket, destination_bucket):
     data_source = spark.read.option("multiline", "true").json(f"s3://{source_bucket}/{key}/{key}_{date_origin}.json")
-    date_data = date.today()
+    date_data = datetime.now(pytz.timezone('America/Bogota')).date().isoformat()
     data_transform = data_source.select(
         to_date(trim(col("fecha_de_registro")), "yyyy-mm-dd").alias("fecha_registro_oferta"),
         trim(col("referencia_de_la_oferta")).alias("desc_oferta"),
@@ -53,6 +53,7 @@ def main():
     pyspark_args = parse_arguments()
     print(pyspark_args.staging_bucket, pyspark_args.raw_bucket, pyspark_args.app_name)
     spark = SparkSession.builder.appName(pyspark_args.app_name).getOrCreate()
+    spark.conf.set('spark.sql.sources.partitionOverwriteMode', 'dynamic')
     transform_data(spark, key=pyspark_args.key, date_origin=pyspark_args.date_origin,
                    source_bucket=pyspark_args.staging_bucket,
                    destination_bucket=pyspark_args.raw_bucket

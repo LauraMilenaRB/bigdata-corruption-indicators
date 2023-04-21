@@ -91,6 +91,7 @@ def create_apache_airflow():
     subnets_id = vpc.get_private_subnets_id(vpc_ids, session)
     sec_group = vpc.get_security_group_id(vpc_ids, session)
 
+    emr.create_roles_default_emr(session)
     airflow.create_rol_execution_evn(session, bucket_dag_prefix, evn_name)
     airflow.create_policy_emr_mwaa(session, evn_name)
     airflow.create_mwaa_evn(evn_name, bucket_dag_prefix, session, sec_group, subnets_id[1:])
@@ -113,7 +114,6 @@ def create_streaming_emr():
           "*                     Amazon EMR                         *\n"
           "**********************************************************")
 
-    emr.create_roles_default_emr(session)
     vpc_ids = vpc.get_vpc_id(vpc_name, session, conf.get("variables_vpc").get("vpcCIDR"))
     subnets_id = vpc.get_public_subnets_id(vpc_ids, session)
 
@@ -156,12 +156,12 @@ def create_tables_redshift():
 
 if __name__ == '__main__':
     #create_update_buckets()
-    create_service_redshift()
-    create_vpc_subnets()
+    #create_service_redshift()
+    #create_vpc_subnets()
     create_apache_airflow()
-    create_streaming_kinesis()
-    create_tables_redshift()
-    create_streaming_emr()
+    #create_streaming_kinesis()
+    #create_tables_redshift()
+    #create_streaming_emr()
 
 
 

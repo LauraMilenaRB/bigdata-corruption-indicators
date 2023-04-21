@@ -268,6 +268,7 @@ def parse_arguments():
 def main():
     spark = SparkSession.builder.config("spark.streaming.concurrentJobs", "8").appName('master-elasticmapreduce_streaming').getOrCreate()
     spark.sql("set spark.sql.streaming.schemaInference=true")
+    spark.conf.set('spark.sql.sources.partitionOverwriteMode', 'dynamic')
 
     pyspark_args = parse_arguments()
     list_source = ["s3://test-pgr-raw-zone/t_seii_procecotrata_compraadjudi",

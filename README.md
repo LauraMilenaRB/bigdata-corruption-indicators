@@ -11,13 +11,16 @@ juan.arevalo-m@mail.escuelaing.edu.co<br>
 
 
 ## Tabla de contenidos
-1. [Arquitectura propuesta en AWS](#arquitectura-propuesta-en-aws)
-2. [Instalación](#instalacion)
-3. [Manual de uso](#manual-de-uso)
+1. [Video de resumen](#arquitectura-propuesta-en-aws)
+2. [Arquitectura propuesta en AWS](#arquitectura-propuesta-en-aws)
+3. [Instalación](#instalacion)
+4. [Manual de uso](#manual-de-uso)
    1. [Para batch](#para-batch)
    2. [Para streaming](#para-streaming)
    3. [Visualización de datos](#visualizacion-de-datos)
 
+## Video de resumen
+[![Video de resumen]({img/img.png})]({https://youtu.be/aN7xFw2ZJv4} )
 ## Arquitectura propuesta en AWS
 <br>![img.png](img/img.png)<br>
 

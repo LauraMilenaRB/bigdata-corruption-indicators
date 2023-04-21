@@ -163,7 +163,7 @@ def create_delivery_stream_kinesis(session_client, kinesis_delivery_stream_name,
             DeliveryStreamName=kinesis_delivery_stream_name,
             DeliveryStreamType='KinesisStreamAsSource',
             KinesisStreamSourceConfiguration={
-                'KinesisStreamARN': f"arn:aws:kinesis:{session_client.region_name}:{account_id}:elasticmapreduce_streaming/{kinesis_stream_name}",
+                'KinesisStreamARN': f"arn:aws:kinesis:{session_client.region_name}:{account_id}:stream/{kinesis_stream_name}",
                 'RoleARN': f'arn:aws:iam::{account_id}:role/{role_name}'
             },
             ExtendedS3DestinationConfiguration={

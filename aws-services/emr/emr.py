@@ -21,14 +21,14 @@ def create_roles_default_emr(session_client):
         file = open("aws-services/emr/EMR_policy_AddJobStep.json", "r")
         ct_file = file.read()
         file.close()
-        identity = session_client.client('sts').get_caller_identity()
-        iam.create_policy(session_client, 'EMR_policy_AddJobStep', ct_file)
-        iam.attach_role_policy(session_client, 'EMR_EC2_DefaultRole', f'arn:aws:iam::{identity.get("Account")}:policy/EMR_policy_AddJobStep')
 
         subprocess.run("aws emr create-default-roles", shell=True)
         subprocess.run("aws iam create-service-linked-role --aws-service-name elasticmapreduce.amazonaws.com", shell=True)
-
+        time.sleep(5)
         iam.add_role_from_instance_profile(session_client, 'EMR_EC2_DefaultRole', 'EMR_EC2_DefaultRole')
+        identity = session_client.client('sts').get_caller_identity()
+        iam.create_policy(session_client, 'EMR_policy_AddJobStep', ct_file)
+        iam.attach_role_policy(session_client, 'EMR_EC2_DefaultRole', f'arn:aws:iam::{identity.get("Account")}:policy/EMR_policy_AddJobStep')
 
     except ClientError as e:
         logging.error(e)

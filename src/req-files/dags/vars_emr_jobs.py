@@ -6,6 +6,8 @@ juan.arevalo-m@mail.escuelaing.edu.co
 
 from datetime import date, datetime
 
+import pytz
+
 default_args = {
     "owner": "Airflow",
     "start_date": datetime(2023, 3, 12),
@@ -23,8 +25,8 @@ bucket_raw_name_arg = "test-pgr-raw-zone"
 bucket_master_name_arg = "test-pgr-curated-zone"
 bucket_scripts_name_arg = "test-pgr-req-files"
 data_type_origin_arg = "json"
-date_load_data = str(date.today())
-id_date_load_data = str(date.today()).replace("-", "")
+date_load_data = str(datetime.now(pytz.timezone('America/Bogota')).date().isoformat())
+id_date_load_data = str(datetime.now(pytz.timezone('America/Bogota')).date().isoformat()).replace("-", "")
 
 endpoint_url_arg = {
     "t_otro_pernajuesadl_camarcomerci": "https://www.datos.gov.co/resource/c82u-588k.json",
@@ -99,7 +101,7 @@ JOB_FLOW_OVERRIDES = {
                 'InstanceCount': 1,
             }
         ],
-        'Ec2SubnetId': 'subnet-0c5489de6687572e6',
+        'Ec2SubnetId': 'subnet-05bc8d083debeadd2',
         'KeepJobFlowAliveWhenNoSteps': True,
         'TerminationProtected': False,
     },
