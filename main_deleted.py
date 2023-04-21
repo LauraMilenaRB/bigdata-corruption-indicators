@@ -90,7 +90,7 @@ def deleted_job_emr():
 
 
 if __name__ == '__main__':
-    #deleted_buckets()
+    deleted_buckets()
     deleted_redshift()
     deleted_airflow()
     deleted_kinesis_stream()
