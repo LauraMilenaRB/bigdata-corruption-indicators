@@ -20,7 +20,8 @@ juan.arevalo-m@mail.escuelaing.edu.co<br>
    3. [Visualización de datos](#visualizacion-de-datos)
 
 ## Video de resumen
-[![Video de resumen]({img/img.png})]({https://youtu.be/aN7xFw2ZJv4} )
+<a href="{https://youtu.be/aN7xFw2ZJv4}" title="Link Title"><img src="{(img/img.png)}" alt="Alternate Text" /></a>
+
 ## Arquitectura propuesta en AWS
 <br>![img.png](img/img.png)<br>
 
