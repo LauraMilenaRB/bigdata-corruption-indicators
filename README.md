@@ -21,9 +21,9 @@ juan.arevalo-m@mail.escuelaing.edu.co<br>
 
 
 ## Arquitectura propuesta en AWS
-<br>![img.png](img/img.png)]<br>
+<br>![img.png](img/img.png)
 
-## Video de la arquitectura propuesta en AWS
+## Video de la arquitectura
 [![img.png](https://img.youtube.com/vi/aN7xFw2ZJv4/0.jpg)](http://www.youtube.com/watch?v=aN7xFw2ZJv4 "Explicación de la arquitectura propuesta")
 
 ## Instalacion
