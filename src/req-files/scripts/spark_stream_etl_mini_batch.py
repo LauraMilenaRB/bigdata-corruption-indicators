@@ -44,7 +44,7 @@ def main():
 
     pyspark_args = parse_arguments()
     command = f'aws emr add-steps --cluster-id {pyspark_args.id_cluster} ' \
-              f'--steps Type=CUSTOM_JAR,Name="spark_stream_ind",Jar="command-runner.jar",ActionOnFailure=CONTINUE,Args=[spark-submit,--master,yarn,--deploy-mode,client,s3://test-pgr-req-files/scripts/spark_stream_ind_mini_batch.py,' \
+              f'--steps Type=CUSTOM_JAR,Name="spark_stream_ind",Jar="command-runner.jar",ActionOnFailure=CONTINUE,Args=[spark-submit,--master,yarn,--deploy-mode,client,s3://test-pgr-req-files/scripts/spark_stream_ind_mini_batch_loop.py,' \
               f'--endpoint,{pyspark_args.endpoint},--user,{pyspark_args.user},--pwd,{pyspark_args.pwd},--db,{pyspark_args.db}]'
     #subprocess.run(command, shell=True)
     while True:

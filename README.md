@@ -24,7 +24,9 @@ juan.arevalo-m@mail.escuelaing.edu.co<br>
 <br>![img.png](img/img.png)
 
 ## Video de la arquitectura
-[![img.png](https://img.youtube.com/vi/aN7xFw2ZJv4/0.jpg)](http://www.youtube.com/watch?v=aN7xFw2ZJv4 "Explicación de la arquitectura propuesta")
+[![img.png](https://img.youtube.com/vi/_jjS0IqXjss/0.jpg)](http://www.youtube.com/watch?v=_jjS0IqXjss "Explicación de la arquitectura propuesta I")
+<br>
+[![img.png](https://img.youtube.com/vi/aN7xFw2ZJv4/0.jpg)](http://www.youtube.com/watch?v=aN7xFw2ZJv4 "Explicación de la arquitectura propuesta II")
 
 ## Instalacion
 Para poder desplegar la arquitectura propuesta se desarrollaron los componentes requeridos con la siguiente estructura:
