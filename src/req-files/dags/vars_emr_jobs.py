@@ -91,13 +91,13 @@ JOB_FLOW_OVERRIDES = {
                 'Market': 'ON_DEMAND',
                 'InstanceRole': 'MASTER',
                 'InstanceCount': 1,
-                'InstanceType': 'm5.xlarge',
+                'InstanceType': 'm6g.xlarge',
             },
             {
                 'Name': 'Core node',
                 'Market': 'ON_DEMAND',
                 'InstanceRole': 'CORE',
-                'InstanceType': 'm5.xlarge',
+                'InstanceType': 'm6g.xlarge',
                 'InstanceCount': 1,
             }
         ],
