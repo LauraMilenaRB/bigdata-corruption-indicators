@@ -11,6 +11,7 @@ juan.arevalo-m@mail.escuelaing.edu.co<br>
 
 
 ## Tabla de contenidos
+[![CircleCI](https://circleci.com/gh/LauraMilenaRB/bigdata-corruption-indicators/.svg?style=svg)](https://circleci.com/gh/LauraMilenaRB/bigdata-corruption-indicators)
 1. [Arquitectura propuesta en AWS](#arquitectura-propuesta-en-aws)
 2. [Video de la arquitectura](#video-de-la-arquitectura)
 3. [Instalación](#instalacion)
