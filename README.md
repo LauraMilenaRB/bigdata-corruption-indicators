@@ -9,9 +9,9 @@ laura.ramos-b@mail.escuelaing.edu.co<br>
 juan.arevalo-m@mail.escuelaing.edu.co<br>
 </p>
 
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/LauraMilenaRB/bigdata-corruption-indicators/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/LauraMilenaRB/bigdata-corruption-indicators/tree/main)
 
 ## Tabla de contenidos
-[![CircleCI](https://circleci.com/gh/LauraMilenaRB/bigdata-corruption-indicators/.svg?style=svg)](https://circleci.com/gh/LauraMilenaRB/bigdata-corruption-indicators)
 1. [Arquitectura propuesta en AWS](#arquitectura-propuesta-en-aws)
 2. [Video de la arquitectura](#video-de-la-arquitectura)
 3. [Instalación](#instalacion)
